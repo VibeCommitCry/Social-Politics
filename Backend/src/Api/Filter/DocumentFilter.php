@@ -2,8 +2,12 @@
 
 namespace App\Api\Filter;
 
+use App\Api\Interface\FilterInterface;
+
 final class DocumentFilter implements FilterInterface
 {
+    private readonly string $endpoint;
+
     public function __construct(
         public readonly int $top = 5,
         public readonly bool $includeDeleted = false,
@@ -11,7 +15,14 @@ final class DocumentFilter implements FilterInterface
         public readonly string $orderDirection = 'desc',
         public readonly ?string $room = null,
         public readonly ?string $type = null,
-    ) {}
+    ) {
+        $this->endpoint = 'document';
+    }
+
+    public function endpoint(): string
+    {
+        return $this->endpoint;
+    }
 
     public function toQueryParams(): array
     {

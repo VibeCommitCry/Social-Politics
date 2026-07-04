@@ -2,25 +2,23 @@
 
 namespace App\Api\Provider;
 
-use App\Api\Dto\DocumentDto;
-use App\Api\Filter\DocumentFilter;
-use App\Api\Interface\DocumentInterface;
+use App\Api\Interface\ApiInterface;
+use App\Api\Interface\FilterInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-final class DocumentProvider implements DocumentInterface
+final class ApiProvider implements ApiInterface
 {
-    private const ENDPOINT = 'Document';
 
     public function __construct(
         private HttpClientInterface $govermentApiClient,
     ) {
     }
 
-    public function search(DocumentFilter $filter): array
+    public function search(FilterInterface $filter, string $dto): array
     {
         try {
-            $response = $this->govermentApiClient->request('GET', self::ENDPOINT, [
+            $response = $this->govermentApiClient->request('GET',$filter->endpoint(), [
                 'query' => $filter->toQueryParams(),
             ]);
 
@@ -28,13 +26,13 @@ final class DocumentProvider implements DocumentInterface
             $result = [];
 
             foreach ($data['value'] as $value) {
-                array_push($result, DocumentDto::fromArray($value));
+                array_push($result, $dto::fromArray($value));
             }
 
             return $result;
 
         } catch (TransportExceptionInterface $e) {
-            throw new \RuntimeException('Weather API request failed', previous: $e);
+            throw new \RuntimeException('API request failed', previous: $e);
         }
     }
 }

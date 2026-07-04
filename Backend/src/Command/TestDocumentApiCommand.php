@@ -3,8 +3,9 @@
 
 namespace App\Command;
 
+use App\Api\Dto\DocumentDto;
 use App\Api\Filter\DocumentFilter;
-use App\Api\Interface\DocumentInterface;
+use App\Api\Interface\ApiInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,13 +14,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:document:search',
+    name: 'app:api:document',
     description: 'Calls the real Tweede Kamer Document API and prints results',
 )]
 class TestDocumentApiCommand extends Command
 {
     public function __construct(
-        private DocumentInterface $documentProvider,
+        private ApiInterface $apiProvider,
     ) {
         parent::__construct();
     }
@@ -45,7 +46,7 @@ class TestDocumentApiCommand extends Command
         $io->writeln(sprintf('Calling API with filter: %s', json_encode($filter->toQueryParams())));
 
         try {
-            $results = $this->documentProvider->search($filter);
+            $results = $this->apiProvider->search($filter, DocumentDto::class );
         } catch (\Throwable $e) {
             $io->error(sprintf('API call failed: %s', $e->getMessage()));
 

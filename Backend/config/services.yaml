@@ -6,8 +6,8 @@ services:
     App\:
         resource: '../src/'
 
-    App\Api\Provider\DocumentProvider:
+    App\Api\Provider\ApiProvider:
         arguments:
             $govermentApiClient: '@goverment_api.client'
 
-    App\Api\Provider\DocumentProviderInterface: '@App\Api\Provider\DocumentProvider'
+    App\Api\Provider\ApiInterface: '@App\Api\Provider\ApiProvider'
