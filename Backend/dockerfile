@@ -1,0 +1,31 @@
+FROM php:8.4-fpm-alpine
+
+# Install system dependencies and build tools
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    icu-dev \
+    libzip-dev \
+    zip \
+    $PHPIZE_DEPS
+
+# Install and enable required PHP extensions for Symfony & MySQL
+RUN docker-php-ext-configure zip \
+    && docker-php-ext-install -j$(nproc) \
+        intl \
+        pdo_mysql \
+        zip
+
+# Install Composer globally
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+COPY . .
+
+# Set working directory inside the container
+WORKDIR /var/www/html
+
+# Expose port 9000 for PHP-FPM connection
+EXPOSE 9000
+
+CMD ["php-fpm"]
