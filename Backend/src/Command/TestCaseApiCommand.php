@@ -30,7 +30,7 @@ class TestCaseApiCommand extends Command
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Number of results', 5)
             ->addOption('type', null, InputOption::VALUE_OPTIONAL, 'Filter by Soort')
-            ->addOption('room', null, InputOption::VALUE_OPTIONAL, 'Filter by Kamer');
+            ->addOption('room', null, InputOption::VALUE_OPTIONAL, 'Filter by Kamer', "Tweede Kamer");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
