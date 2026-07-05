@@ -2,6 +2,7 @@
 
 namespace App\Api\Filter;
 
+use App\Api\Enum\DocumentField;
 use App\Api\Interface\FilterInterface;
 
 final class DocumentFilter implements FilterInterface
@@ -16,7 +17,7 @@ final class DocumentFilter implements FilterInterface
         public readonly ?string $room = null,
         public readonly ?string $type = null,
     ) {
-        $this->endpoint = 'document';
+        $this->endpoint = DocumentField::Endpoint->value;
     }
 
     public function endpoint(): string
@@ -26,31 +27,50 @@ final class DocumentFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        $filters = [];
-
-        if (!$this->includeDeleted) {
-            $filters[] = 'Verwijderd eq false';
-        }
-
-        if ($this->room !== null) {
-            $filters[] = sprintf("Kamer eq '%s'", $this->room);
-        }
-
-        if ($this->type !== null) {
-            $filters[] = sprintf("Soort eq '%s'", $this->type);
-        }
-
         $params = [
             '$top' => $this->top,
         ];
 
-        if (!empty($filters)) {
-            $params['$filter'] = implode(' and ', $filters);
+        $conditions = $this->buildConditions();
+
+        if ($conditions !== []) {
+            $params['$filter'] = implode(' and ', $conditions);
         }
 
         if ($this->orderBy !== null) {
             $params['$orderby'] = sprintf('%s %s', $this->orderBy, $this->orderDirection);
         }
+
         return $params;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function buildConditions(): array
+    {
+        $conditions = [];
+
+        if (!$this->includeDeleted) {
+            $conditions[] = DocumentField::Deleted->value . ' eq false';
+        }
+
+        if ($this->room !== null) {
+            $conditions[] = sprintf(
+                "%s eq '%s'",
+                DocumentField::Room->value,
+                str_replace("'", "''", $this->room)
+            );
+        }
+
+        if ($this->type !== null) {
+            $conditions[] = sprintf(
+                "%s eq '%s'",
+                DocumentField::Type->value,
+                str_replace("'", "''", $this->type)
+            );
+        }
+
+        return $conditions;
     }
 }

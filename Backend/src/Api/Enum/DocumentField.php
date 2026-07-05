@@ -4,6 +4,7 @@ namespace App\Api\Enum;
 
 enum DocumentField: string
 {
+    case Endpoint = 'document';
     case Id = 'Id';
     case Type = 'Soort';
     case DocumentNumber = 'Nummer';

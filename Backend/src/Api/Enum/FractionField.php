@@ -4,6 +4,7 @@ namespace App\Api\Enum;
 
 enum FractionField: string
 {
+    case Endpoint = 'fractie';
     case Id = 'Id';
     case Number = 'Nummer';
     case Abbreviation = 'Afkorting';

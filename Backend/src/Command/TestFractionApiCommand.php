@@ -14,6 +14,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+// get the current parties in the second room
+
 #[AsCommand(
     name: 'app:api:fraction',
     description: 'Calls the real Tweede Kamer API and prints Fractie results',
@@ -29,9 +31,10 @@ class TestFractionApiCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Number of results', 5)
+            ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Number of results', 50)
             ->addOption('order-by', null, InputOption::VALUE_OPTIONAL, 'Field to order by (e.g. GewijzigdOp, NaamNL)', FractionField::SeatCount->value)
             ->addOption('order-direction', null, InputOption::VALUE_OPTIONAL, 'asc or desc', 'desc')
+            ->addOption('name', null, InputOption::VALUE_OPTIONAL)
             ->addOption('include-deleted', null, InputOption::VALUE_NONE, 'Include deleted fractions');
     }
 
@@ -55,6 +58,7 @@ class TestFractionApiCommand extends Command
         $filter = new FractionFilter(
             top: (int) $input->getOption('top'),
             orderDirection: $input->getOption('order-direction'),
+            searchByName: $input->getOption('name'),
             orderBy: $orderBy,
             includeDeleted: (bool) $input->getOption('include-deleted'),
         );

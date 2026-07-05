@@ -13,9 +13,12 @@ final class FractionFilter implements FilterInterface
         public readonly int $top = 5,
         public readonly string $orderDirection = 'desc',
         public readonly FractionField $orderBy = FractionField::SeatCount,
+        public readonly bool $includeNamelessFraction = false,
+        public readonly bool $includeInactiveFraction = false,
         public readonly bool $includeDeleted = false,
+        public readonly ?string $searchByName = null,
     ) {
-        $this->endpoint = 'fractie';
+        $this->endpoint = FractionField::Endpoint->value;
     }
 
     public function endpoint(): string
@@ -30,10 +33,42 @@ final class FractionFilter implements FilterInterface
             '$orderby' => sprintf('%s %s', $this->orderBy->value, $this->orderDirection),
         ];
 
-        if (!$this->includeDeleted) {
-            $params['$filter'] = 'Verwijderd eq false';
+        $conditions = $this->buildConditions();
+
+        if ($conditions !== []) {
+            $params['$filter'] = implode(' and ', $conditions);
         }
 
         return $params;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function buildConditions(): array
+    {
+        $conditions = [];
+
+        if (!$this->includeDeleted) {
+            $conditions[] = FractionField::Deleted->value . ' eq false';
+        }
+
+        if (!$this->includeNamelessFraction) {
+            $conditions[] = FractionField::DutchName->value . ' ne null';
+        }
+
+        if (!$this->includeInactiveFraction) {
+            $conditions[] = FractionField::ActiveUntil->value . ' eq null';
+        }
+
+        if ($this->searchByName) {
+            $conditions[] = sprintf(
+                "%s eq '%s'",
+                FractionField::Abbreviation->value,
+                str_replace("'", "''", $this->searchByName)
+            );
+        }
+
+        return $conditions;
     }
 }
