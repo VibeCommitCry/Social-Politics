@@ -3,9 +3,10 @@
 
 namespace App\Tests\Api\Provider;
 
+use App\Api\Dto\DocumentDto;
 use App\Api\Enum\DocumentField;
 use App\Api\Filter\DocumentFilter;
-use App\Api\Provider\DocumentProvider;
+use App\Api\Provider\ApiProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -59,9 +60,9 @@ class DocumentProviderTest extends TestCase
         ]);
 
         $client = new MockHttpClient([$mockResponse]);
-        $provider = new DocumentProvider($client);
+        $provider = new ApiProvider($client);
 
-        $results = $provider->search(new DocumentFilter(top: 5));
+        $results = $provider->search(new DocumentFilter(top: 5), DocumentDto::class);
 
         $this->assertCount(2, $results);
         $this->assertSame('792a2ac6-2346-45b8-8f86-011db4716bc2', $results[0]->id);
