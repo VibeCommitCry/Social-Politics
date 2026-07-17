@@ -5,7 +5,9 @@ namespace App\Command;
 use App\Entity\Fraction;
 use App\Repository\FractionRepository;
 use App\Repository\SyncCursorRepository;
+use App\Service\XmlService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,7 +18,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
     name: 'app:sync:fraction',
     description: 'Get the current Second room situation',
 )]
-class SyncFractieCommand extends Command
+final class SyncFractieCommand extends Command
 {
     private const NS_TK = 'http://www.tweedekamer.nl/xsd/tkData/v1-0';
     private const NS_ATOM = 'http://www.w3.org/2005/Atom';
@@ -26,6 +28,7 @@ class SyncFractieCommand extends Command
         private EntityManagerInterface $em,
         private FractionRepository $fractieRepo,
         private SyncCursorRepository $cursorRepo,
+        private XmlService $xmlService,
         private string $governmentApiBaseUrl,
     ) {
         parent::__construct();
@@ -34,50 +37,41 @@ class SyncFractieCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $cursor = $this->cursorRepo->find('Fractie');
+        $url = $cursor?->getNextUrl() ?? $this->xmlService->initialUrl('Fractie');
 
-        $initialUrl = rtrim($this->governmentApiBaseUrl, '/') . '/Feed?category=Fractie&content=internal';
-        $url = $cursor?->getNextUrl() ?? $initialUrl;
-
-        do {
-            $xml = new \SimpleXMLElement($this->http->request('GET', $url)->getContent());
-            $xml->registerXPathNamespace('atom', self::NS_ATOM);
-            $xml->registerXPathNamespace('tk', self::NS_TK);
-
-            foreach ($xml->xpath('//atom:entry') as $entry) {
-                $this->upsertFractie($entry);
+        try {
+            foreach ($this->xmlService->fetchAll($url, fn(string $next) => $this->cursorRepo->save('Fractie', $next)) as $node) {
+                $this->upsertFractie($node);
             }
 
-            $nextLinks = $xml->xpath("atom:link[@rel='next']/@href");
-            $url = $nextLinks ? (string) $nextLinks[0] : null;
-
-            if ($url) {
-                $this->cursorRepo->save('Fractie', $url);
-            }
-        } while ($url !== null && \count($xml->xpath('//atom:entry')) > 0);
-
-        $this->em->flush();
-        $output->writeln('Fractie sync done.');
+            $this->em->flush();
+            $output->writeln('Fractie sync done.');
+        } catch (\Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface $e) {
+            $response = $e->getResponse();
+            dump($response->getStatusCode());
+            dump($response->getHeaders(false));
+            dump($response->getContent(false));
+            $output->writeln('Fractie sync failed.');
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
     }
 
-      private function upsertFractie(\SimpleXMLElement $entry): void
+    private function upsertFractie(\SimpleXMLElement $node): void
     {
-        $entry->registerXPathNamespace('tk', self::NS_TK);
-        $node = $entry->xpath('.//tk:fractie')[0] ?? null;
-        if (!$node) {
-            return;
-        }
-
         $id = (string) $node['id'];
         $fractie = $this->fractieRepo->find($id) ?? new Fraction($id);
 
         $fractie->setAbbreviation((string) $node->afkorting);
         $fractie->setNameNl((string) $node->naamNL);
-        $fractie->setNameEn((string) $node->naamEN);
+        $fractie->setNameEN((string) $node->naamEN);
         $fractie->setSeatCount((int) $node->aantalZetels);
         $fractie->setDeleted(filter_var($node['verwijderd'] ?? 'false', FILTER_VALIDATE_BOOL));
 
         $this->em->persist($fractie);
+        $this->em->flush();
+        $this->em->clear();
     }
+
 }

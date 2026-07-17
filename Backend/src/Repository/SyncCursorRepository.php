@@ -23,7 +23,6 @@ class SyncCursorRepository extends ServiceEntityRepository
         } else {
             $cursor->setNextUrl($nextUrl);
         }
-
         $this->getEntityManager()->flush();
     }
 }
