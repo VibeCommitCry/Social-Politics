@@ -19,49 +19,67 @@ class XmlService
 
     public function initialUrl(string $category): string
     {
-        return rtrim($this->governmentApiBaseUrl, '/') . "/Feed?category={$category}";
+        return rtrim($this->governmentApiBaseUrl, '/') . "/Feed?category={$category}&content=internal";
     }
 
     /**
-     * Fetches every page for a category, yielding each entity's <tk:...> node.
-     * Calls $onCursor(string $nextUrl) after each page so the caller can persist it.
-     *
      * @return Generator<SimpleXMLElement>
      */
     public function fetchAll(string $url, callable $onCursor): Generator
     {
         do {
-            $xml = new SimpleXMLElement($this->http->request(
-                'GET',
-                $url,
-                [
-                    'headers' => [
-                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                        'Accept' => 'application/atom+xml, text/xml, */*',
-                    ],
-                ]
-            )->getContent());
+            $xml = new SimpleXMLElement($this->http->request('GET', $url)->getContent());
             $xml->registerXPathNamespace('atom', self::NS_ATOM);
             $xml->registerXPathNamespace('tk', self::NS_TK);
 
             $entries = $xml->xpath('//atom:entry');
 
             foreach ($entries as $entry) {
+                $entry->registerXPathNamespace('atom', self::NS_ATOM);
                 $entry->registerXPathNamespace('tk', self::NS_TK);
-                $node = $entry->xpath('.//tk:*')[0] ?? null; // works for any category
+
+                $node = $entry->xpath('.//tk:*')[0] ?? null;
                 if ($node !== null) {
                     yield $node;
                 }
             }
 
-            $nextLinks = $xml->xpath("atom:link[@rel='next']/@href");
-            $url = $nextLinks ? (string) $nextLinks[0] : null;
+            $nextUrl = $this->extractNextUrl($entries);
 
-            if ($url !== null) {
-                $onCursor($url);
+            if ($nextUrl !== null) {
+                $onCursor($nextUrl);
             }
+
+            $url = $nextUrl;
         } while ($url !== null && \count($entries) > 0);
     }
 
+    /**
+     * Resolves the resume URL for the sync cursor.
+     *
+     * IMPORTANT: the feed itself only carries a <link rel="next"> at the
+     * top level once a page hits the 250-entity cap — categories smaller
+     * than that (e.g. Fractie) never trigger it, so relying on the
+     * feed-level link means the cursor is silently never saved for them.
+     *
+     * Instead, each individual <entry> carries its OWN <link rel="next">,
+     * pointing to the feed page that starts at the following entity. This
+     * exists regardless of category size, so we take the value from the
+     * LAST entry processed on this page as the real resume point.
+     */
+    private function extractNextUrl(array $entries): ?string
+    {
+        if (empty($entries)) {
+            return null;
+        }
 
+        $lastEntry = $entries[array_key_last($entries)];
+        $lastEntry->registerXPathNamespace('atom', self::NS_ATOM);
+
+        $links = $lastEntry->xpath("atom:link[@rel='next']/@href");
+
+        return $links ? (string) $links[0] : null;
+    }
+
+    
 }

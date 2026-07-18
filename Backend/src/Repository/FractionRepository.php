@@ -16,28 +16,20 @@ class FractionRepository extends ServiceEntityRepository
         parent::__construct($registry, Fraction::class);
     }
 
-    //    /**
-    //     * @return Fraction[] Returns an array of Fraction objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('f.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createFractionFromArray(array $data): Fraction
+    {
+        $fractie = $this->find($data['id']) ?? new Fraction($data['id']);
 
-    //    public function findOneBySomeField($value): ?Fraction
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $fractie->setAbbreviation($data['abbreviation']);
+        $fractie->setNameNl($data['nameNl']);
+        $fractie->setNameEN($data['nameEn']);
+        $fractie->setSeatCount($data['seatCount']);
+        $fractie->setDeleted($data['deleted']);
+
+        $this->getEntityManager()->persist($fractie);
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear();
+
+        return $fractie;
+    }
 }

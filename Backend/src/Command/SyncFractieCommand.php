@@ -2,50 +2,45 @@
 
 namespace App\Command;
 
-use App\Entity\Fraction;
+use App\Enum\CategoryEnum;
 use App\Repository\FractionRepository;
 use App\Repository\SyncCursorRepository;
+use App\Service\FractionService;
 use App\Service\XmlService;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
     name: 'app:sync:fraction',
     description: 'Get the current Second room situation',
 )]
-final class SyncFractieCommand extends Command
+class SyncFractieCommand extends Command
 {
-    private const NS_TK = 'http://www.tweedekamer.nl/xsd/tkData/v1-0';
-    private const NS_ATOM = 'http://www.w3.org/2005/Atom';
+    private const Category = CategoryEnum::FRACTION->value;
 
     public function __construct(
-        private HttpClientInterface $http,
-        private EntityManagerInterface $em,
-        private FractionRepository $fractieRepo,
         private SyncCursorRepository $cursorRepo,
         private XmlService $xmlService,
-        private string $governmentApiBaseUrl,
+        private FractionService $fractionService,
+        private FractionRepository $fractieRepo,
     ) {
         parent::__construct();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $cursor = $this->cursorRepo->find('Fractie');
-        $url = $cursor?->getNextUrl() ?? $this->xmlService->initialUrl('Fractie');
+        $cursor = $this->cursorRepo->find(self::Category);
+        $url = $cursor?->getNextUrl() ?? $this->xmlService->initialUrl(self::Category);
 
         try {
-            foreach ($this->xmlService->fetchAll($url, fn(string $next) => $this->cursorRepo->save('Fractie', $next)) as $node) {
+            foreach ($this->xmlService->fetchAll($url, fn(string $next) => $this->cursorRepo->save(self::Category, $next)) as $node) {
                 $this->upsertFractie($node);
             }
 
-            $this->em->flush();
             $output->writeln('Fractie sync done.');
+
         } catch (\Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface $e) {
             $response = $e->getResponse();
             dump($response->getStatusCode());
@@ -60,18 +55,7 @@ final class SyncFractieCommand extends Command
 
     private function upsertFractie(\SimpleXMLElement $node): void
     {
-        $id = (string) $node['id'];
-        $fractie = $this->fractieRepo->find($id) ?? new Fraction($id);
-
-        $fractie->setAbbreviation((string) $node->afkorting);
-        $fractie->setNameNl((string) $node->naamNL);
-        $fractie->setNameEN((string) $node->naamEN);
-        $fractie->setSeatCount((int) $node->aantalZetels);
-        $fractie->setDeleted(filter_var($node['verwijderd'] ?? 'false', FILTER_VALIDATE_BOOL));
-
-        $this->em->persist($fractie);
-        $this->em->flush();
-        $this->em->clear();
+        $data = $this->fractionService->extractFractieData($node);
+        $this->fractieRepo->createFractionFromArray($data);
     }
-
 }
