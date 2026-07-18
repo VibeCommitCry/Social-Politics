@@ -10,9 +10,7 @@ framework:
     http_client:
         scoped_clients:
             goverment_api.client:
-                base_uri: '%env(GOVERMENT_API_BASE_URL)%'
-                headers:
-                    Authorization: 'Bearer %env(GOVERMENT_API_KEY)%'
+                base_uri: '%env(GOVERMENT_API_ODATA_URL)%'
 when@test:
     framework:
         test: true

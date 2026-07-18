@@ -3,17 +3,14 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
-            string $governmentApiBaseUrl: '%env(GOVERMENT_API_BASE_URL)%'
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-        autowire: true
-        autoconfigure: true
+            string $governmentApiSyncfeedUrl: '%env(GOVERMENT_API_SYNCFEED_URL)%'
+            string $governmentApiOdataUrl: '%env(GOVERMENT_API_ODATA_URL)%'
 
     App\:
         resource: '../src/'
 
     App\Api\Provider\ApiProvider:
         arguments:
-            $govermentApiClient: '@goverment_api.client'
+            $governmentApiOdataUrl: '@goverment_api.client'
 
     App\Api\Provider\ApiInterface: '@App\Api\Provider\ApiProvider'

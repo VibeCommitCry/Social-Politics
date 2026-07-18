@@ -11,16 +11,19 @@ final class ApiProvider implements ApiInterface
 {
 
     public function __construct(
-        private HttpClientInterface $govermentApiClient,
+        private HttpClientInterface $governmentApiOdataUrl,
     ) {
     }
 
     public function search(FilterInterface $filter, string $dto): array
     {
         try {
-            $response = $this->govermentApiClient->request('GET',$filter->endpoint(), [
+
+            $response = $this->governmentApiOdataUrl->request('GET',$filter->endpoint(), [
                 'query' => $filter->toQueryParams(),
             ]);
+
+            dump($response->getInfo('url')); 
 
             $data = $response->toArray();
             $result = [];

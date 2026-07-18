@@ -13,13 +13,13 @@ class XmlService
 
     public function __construct(
         private HttpClientInterface $http,
-        private string $governmentApiBaseUrl,
+        private string $governmentApiSyncfeedUrl,
     ) {
     }
 
     public function initialUrl(string $category): string
     {
-        return rtrim($this->governmentApiBaseUrl, '/') . "/Feed?category={$category}&content=internal";
+        return rtrim($this->governmentApiSyncfeedUrl, '/') . "/Feed?category={$category}&content=internal";
     }
 
     /**
