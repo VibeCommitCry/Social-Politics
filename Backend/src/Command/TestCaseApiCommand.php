@@ -3,9 +3,9 @@
 
 namespace App\Command;
 
-use App\Api\Dto\CaseDto;
-use App\Api\Filter\CaseFilter;
-use App\Api\Interface\ApiInterface;
+use App\Api\Odata\Dto\CaseDto;
+use App\Api\Odata\Filter\CaseFilter;
+use App\Api\Odata\Interface\ApiInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

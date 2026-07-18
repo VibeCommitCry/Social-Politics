@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Api\Filter;
+namespace App\Api\Odata\Filter;
 
-use App\Api\Enum\CaseField;
-use App\Api\Interface\FilterInterface;
+use App\Api\Odata\Enum\CaseField;
+use App\Api\OData\Interface\FilterInterface;
 
 final class CaseFilter implements FilterInterface
 {

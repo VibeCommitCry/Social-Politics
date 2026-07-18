@@ -2,10 +2,9 @@
 // src/Command/TestDocumentApiCommand.php
 
 namespace App\Command;
-
-use App\Api\Dto\DocumentDto;
-use App\Api\Filter\DocumentFilter;
-use App\Api\Interface\ApiInterface;
+use App\Api\Odata\Dto\DocumentDto;
+use App\Api\Odata\Filter\DocumentFilter;
+use App\Api\Odata\Interface\ApiInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

@@ -3,10 +3,10 @@
 
 namespace App\Command;
 
-use App\Api\Dto\FractionDto;
-use App\Api\Enum\FractionField;
-use App\Api\Filter\FractionFilter;
-use App\Api\Interface\ApiInterface;
+use App\Api\Odata\Dto\FractionDto;
+use App\Api\Odata\Enum\FractionField;
+use App\Api\Odata\Filter\FractionFilter;
+use App\Api\Odata\Interface\ApiInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

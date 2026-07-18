@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Api\Dto;
+namespace App\Api\Odata\Dto;
 
-use App\Api\Interface\DtoInterface;
+use App\Api\Odata\Interface\DtoInterface;
 use DateTimeImmutable;
 
 final class FractionDto implements DtoInterface

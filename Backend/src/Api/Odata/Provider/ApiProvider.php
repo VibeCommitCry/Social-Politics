@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Api\Provider;
+namespace App\Api\Odata\Provider;
 
-use App\Api\Interface\ApiInterface;
-use App\Api\Interface\FilterInterface;
+use App\Api\Odata\Interface\ApiInterface;
+use App\Api\Odata\Interface\FilterInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
@@ -22,8 +22,6 @@ final class ApiProvider implements ApiInterface
             $response = $this->governmentApiOdataUrl->request('GET',$filter->endpoint(), [
                 'query' => $filter->toQueryParams(),
             ]);
-
-            dump($response->getInfo('url')); 
 
             $data = $response->toArray();
             $result = [];

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Api\Dto;
+namespace App\Api\Odata\Dto;
 
-use App\Api\Enum\DocumentField;
-use App\Api\Interface\DtoInterface;
+use App\Api\Odata\Enum\DocumentField;
+use App\Api\Odata\Interface\DtoInterface;
 use DateTimeImmutable;
 
 final class DocumentDto implements DtoInterface

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Interface;
+namespace App\Api\Odata\Interface;
 
 
 interface ApiInterface

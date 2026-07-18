@@ -9,8 +9,8 @@ services:
     App\:
         resource: '../src/'
 
-    App\Api\Provider\ApiProvider:
+    App\Api\Odata\Provider\ApiProvider:
         arguments:
             $governmentApiOdataUrl: '@goverment_api.client'
 
-    App\Api\Provider\ApiInterface: '@App\Api\Provider\ApiProvider'
+    App\Api\Odata\Provider\ApiInterface: '@App\Api\Odata\Provider\ApiProvider'
