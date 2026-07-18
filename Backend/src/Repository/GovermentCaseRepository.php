@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Api\Odata\Dto\CaseDto;
 use App\Entity\GovermentCase;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,6 +39,27 @@ class GovermentCaseRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($case);
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+
+        return $case;
+    }
+
+    public function upsertFromDto(CaseDto $dto): GovermentCase
+    {
+        $case = $this->find($dto->id) ?? new GovermentCase($dto->id);
+
+        $case->setNumber($dto->number);
+        $case->setType($dto->type);
+        $case->setTitle($dto->title);
+        $case->setSubject($dto->subject);
+        $case->setStartedOn($dto->date);
+        $case->setOrganization($dto->room);
+        $case->setCurrentStatus($dto->currentStatus); // NEW — was missing, column was always empty
+        $case->setCabinetPosition($dto->cabinetAppreciation);
+        $case->setCompleted($dto->completed ?? false);
+        $case->setDeleted($dto->deleted ?? false);
+        $case->setUpdatedAt($dto->modifiedOn);
+
+        $this->getEntityManager()->persist($case);
 
         return $case;
     }

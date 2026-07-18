@@ -22,6 +22,7 @@ final class CaseDto implements DtoInterface
         public readonly ?DateTimeImmutable $deadline = null,
         public readonly ?string $meetingYear = null,
         public readonly ?int $subNumber = null,
+        public readonly ?string $currentStatus = null, // NEW
         public readonly ?bool $completed = null,
         public readonly ?DateTimeImmutable $modifiedOn = null,
         public readonly ?DateTimeImmutable $apiModifiedOn = null,
@@ -46,6 +47,7 @@ final class CaseDto implements DtoInterface
             deadline: self::toDate($data[CaseField::Deadline->value] ?? null),
             meetingYear: $data[CaseField::MeetingYear->value] ?? null,
             subNumber: $data[CaseField::SubNumber->value] ?? null,
+            currentStatus: $data[CaseField::CurrentStatus->value] ?? null, // NEW
             completed: self::toBool($data[CaseField::Completed->value] ?? null),
             modifiedOn: self::toDate($data[CaseField::ModifiedOn->value] ?? null),
             apiModifiedOn: self::toDate($data[CaseField::ApiModifiedOn->value] ?? null),

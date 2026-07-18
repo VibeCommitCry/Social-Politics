@@ -2,13 +2,13 @@
 
 namespace App\Command;
 
+use App\Api\Syncfeed\Service\XmlService;
 use App\Enum\CategoryEnum;
 use App\Repository\FractionRepository;
 use App\Repository\GovermentCaseRepository;
 use App\Repository\SyncCursorRepository;
 use App\Service\FractionService;
 use App\Service\GovermentCaseService;
-use App\Service\XmlService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

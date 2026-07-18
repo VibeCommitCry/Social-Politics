@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Api\Syncfeed\Service;
 
 use Generator;
 use SimpleXMLElement;

@@ -6,7 +6,7 @@ enum CaseField: string
 {
     case Endpoint = 'Zaak';
     case Dto = CaseDto::class;
-     case Id = 'Id';
+    case Id = 'Id';
     case Number = 'Nummer';
     case Type = 'Soort';
     case Title = 'Titel';
@@ -24,4 +24,6 @@ enum CaseField: string
     case ApiModifiedOn = 'ApiGewijzigdOp';
     case Deleted = 'Verwijderd';
     case CabinetAppreciation = 'Kabinetsappreciatie';
+    case CurrentStatus = 'HuidigeBehandelstatus';
+
 }
