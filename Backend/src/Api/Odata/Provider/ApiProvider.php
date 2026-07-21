@@ -22,9 +22,12 @@ final class ApiProvider implements OdataInterface
         $baseQuery = $filter->toQueryParams();
         $top = $baseQuery['$top'] ?? 250;
         $skip = 0;
+        $paginate = $filter->withSkip();
 
         do {
-            $query = array_merge($baseQuery, ['$top' => $top, '$skip' => $skip]);
+            $query = $paginate
+                ? array_merge($baseQuery, ['$top' => $top, '$skip' => $skip])
+                : array_merge($baseQuery, ['$top' => $top]);
 
             try {
                 $response = $this->governmentApiOdataUrl->request('GET', $filter->endpoint(), ['query' => $query]);
@@ -39,7 +42,7 @@ final class ApiProvider implements OdataInterface
             }
 
             $skip += $top;
-        } while ($count === $top);
+        } while ($paginate && $count === $top);
     }
 
 

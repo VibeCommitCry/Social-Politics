@@ -66,7 +66,7 @@ class TestFractionApiCommand extends Command
         $io->writeln(sprintf('Calling API with filter: %s', json_encode($filter->toQueryParams())));
 
         try {
-            $results = $this->apiProvider->search($filter, FractionDto::class);
+            $results = iterator_to_array($this->apiProvider->search($filter, FractionDto::class));
         } catch (\Throwable $e) {
             $io->error(sprintf('API call failed: %s', $e->getMessage()));
 

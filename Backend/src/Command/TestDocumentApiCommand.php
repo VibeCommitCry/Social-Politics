@@ -3,6 +3,7 @@
 
 namespace App\Command;
 use App\Api\Odata\Filter\DocumentFilter;
+use App\Dto\DocumentDto;
 use App\Interface\OdataInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -44,7 +45,7 @@ class TestDocumentApiCommand extends Command
         $io->writeln(sprintf('Calling API with filter: %s', json_encode($filter->toQueryParams())));
 
         try {
-            $results = $this->apiProvider->search($filter, DocumentDto::class );
+            $results = iterator_to_array($this->apiProvider->search($filter, DocumentDto::class));
         } catch (\Throwable $e) {
             $io->error(sprintf('API call failed: %s', $e->getMessage()));
 

@@ -17,6 +17,7 @@ final class FractionFilter implements FilterInterface
         public readonly bool $includeNamelessFraction = false,
         public readonly bool $includeInactiveFraction = false,
         public readonly bool $includeDeleted = false,
+        public readonly bool $withSkip = false,
         public readonly ?string $searchByName = null,
     ) {
         $this->endpoint = FractionField::Endpoint->value;
@@ -71,5 +72,10 @@ final class FractionFilter implements FilterInterface
         }
 
         return $conditions;
+    }
+
+    public function withSkip(): bool
+    {
+        return $this->withSkip;
     }
 }

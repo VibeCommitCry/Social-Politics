@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Api\Odata\Dto\CaseDto;
+use App\Dto\CaseDto;
 use App\Entity\GovermentCase;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

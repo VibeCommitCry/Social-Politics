@@ -9,4 +9,5 @@ interface FilterInterface
     public function endpoint(): string;
     public function buildConditions(): array;
 
+    public function withSkip(): bool;
 }

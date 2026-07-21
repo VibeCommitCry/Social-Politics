@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Command;
-use App\Api\Odata\Dto\CaseDto;
 use App\Api\Odata\Filter\CaseFilter;
+use App\Dto\CaseDto;
 use App\Interface\OdataInterface;
 use App\Repository\GovermentCaseRepository;
 use Doctrine\ORM\EntityManagerInterface;

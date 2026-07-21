@@ -17,6 +17,8 @@ final class DocumentFilter implements FilterInterface
         public readonly string $orderDirection = 'desc',
         public readonly ?string $room = null,
         public readonly ?string $type = null,
+        public readonly bool $withSkip = false,
+
     ) {
         $this->endpoint = DocumentField::Endpoint->value;
     }
@@ -73,5 +75,10 @@ final class DocumentFilter implements FilterInterface
         }
 
         return $conditions;
+    }
+
+    public function withSkip(): bool
+    {
+        return $this->withSkip;
     }
 }

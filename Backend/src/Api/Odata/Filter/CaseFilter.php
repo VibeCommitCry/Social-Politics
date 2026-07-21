@@ -18,6 +18,8 @@ final class CaseFilter implements FilterInterface
         public readonly ?string $type = null,
         public readonly ?string $room = null,
         public readonly ?bool $completed = null,
+        public readonly bool $withSkip = false,
+
     ) {
         $this->endpoint = CaseField::Endpoint->value;
     }
@@ -82,5 +84,9 @@ final class CaseFilter implements FilterInterface
         }
 
         return $conditions;
+    }
+    public function withSkip(): bool
+    {
+        return $this->withSkip;
     }
 }
