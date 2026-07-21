@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Odata\Enum;
+namespace App\Enum;
 
 enum DocumentField: string
 {

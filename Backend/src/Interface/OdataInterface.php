@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Api\Odata\Interface;
+namespace App\Interface;
 
 use Generator;
 
 
-interface ApiInterface
+interface OdataInterface
 {
     public function search(FilterInterface $filter, string $dto): Generator;
 

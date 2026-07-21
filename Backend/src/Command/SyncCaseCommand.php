@@ -1,10 +1,9 @@
 <?php
 
 namespace App\Command;
-
 use App\Api\Odata\Dto\CaseDto;
 use App\Api\Odata\Filter\CaseFilter;
-use App\Api\Odata\Interface\ApiInterface;
+use App\Interface\OdataInterface;
 use App\Repository\GovermentCaseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -17,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class SyncCaseCommand extends Command
 {
     public function __construct(
-        private ApiInterface $apiProvider,
+        private OdataInterface $apiProvider,
         private GovermentCaseRepository $caseRepo,
         private EntityManagerInterface $em,
     ) {

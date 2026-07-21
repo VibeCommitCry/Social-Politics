@@ -2,8 +2,9 @@
 
 namespace App\Api\Odata\Filter;
 
-use App\Api\Odata\Enum\CaseField;
-use App\Api\OData\Interface\FilterInterface;
+use App\Enum\CaseField;
+use App\Interface\FilterInterface;
+
 
 final class CaseFilter implements FilterInterface
 {

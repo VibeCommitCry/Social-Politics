@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Api\Odata\Dto;
+namespace App\Dto;
 
-use App\Api\Odata\Enum\CaseField;
-use App\Api\Odata\Interface\DtoInterface;
+use App\Interface\DtoInterface;
+use App\Enum\CaseField;
 use DateTimeImmutable;
 
 final class CaseDto implements DtoInterface

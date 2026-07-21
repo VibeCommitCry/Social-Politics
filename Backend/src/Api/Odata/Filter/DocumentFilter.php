@@ -2,8 +2,9 @@
 
 namespace App\Api\Odata\Filter;
 
-use App\Api\Odata\Enum\DocumentField;
-use App\Api\Odata\Interface\FilterInterface;
+use App\Enum\DocumentField;
+use App\Interface\FilterInterface;
+
 
 final class DocumentFilter implements FilterInterface
 {

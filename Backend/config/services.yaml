@@ -11,8 +11,14 @@ services:
 
     App\Api\Odata\Provider\ApiProvider:
         arguments:
-            $governmentApiOdataUrl: '@goverment_api.client'
+            $governmentApiOdataUrl: '@goverment_odata_api.client'
 
-    App\Api\Odata\Provider\ApiInterface: '@App\Api\Odata\Provider\ApiProvider'
+    App\Interface\OdataInterface: '@App\Api\Odata\Provider\ApiProvider'
+
+    App\Api\SyncFeed\Provider\XmlProvider:
+        arguments:
+            $governmentApiSyncFeedUrl: '@goverment_syncfeed_api.client'
+
+    App\Interface\SyncFeedInterface: '@App\Api\SyncFeed\Provider\XmlProvider'
 
     

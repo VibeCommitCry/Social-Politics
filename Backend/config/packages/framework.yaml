@@ -9,8 +9,11 @@ framework:
     #fragments: true
     http_client:
         scoped_clients:
-            goverment_api.client:
+            goverment_odata_api.client:
                 base_uri: '%env(GOVERMENT_API_ODATA_URL)%'
+
+            goverment_syncfeed_api.client:
+                base_uri: '%env(GOVERMENT_API_SYNCFEED_URL)%'
 when@test:
     framework:
         test: true

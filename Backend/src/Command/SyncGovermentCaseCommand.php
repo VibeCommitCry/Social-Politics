@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Api\Syncfeed\Service\XmlService;
+use App\Api\SyncFeed\Provider\XmlProvider;
 use App\Enum\CategoryEnum;
 use App\Repository\FractionRepository;
 use App\Repository\GovermentCaseRepository;
@@ -24,7 +24,7 @@ class SyncGovermentCaseCommand extends Command
 
     public function __construct(
         private SyncCursorRepository $cursorRepo,
-        private XmlService $xmlService,
+        private XmlProvider $xmlProvider,
         private GovermentCaseService $govermentCaseService,
         private GovermentCaseRepository $govermentCaseRepo,
     ) {
@@ -34,10 +34,10 @@ class SyncGovermentCaseCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $cursor = $this->cursorRepo->find(self::Category);
-        $url = $cursor?->getNextUrl() ?? $this->xmlService->initialUrl(self::Category);
+        $url = $cursor?->getNextUrl() ?? $this->xmlProvider->initialUrl(self::Category);
 
         try {
-            foreach ($this->xmlService->fetchAll($url, fn(string $next) => $this->cursorRepo->save(self::Category, $next)) as $node) {
+            foreach ($this->xmlProvider->search($url, fn(string $next) => $this->cursorRepo->save(self::Category, $next)) as $node) {
                 $this->upsertFractie($node);
             }
 

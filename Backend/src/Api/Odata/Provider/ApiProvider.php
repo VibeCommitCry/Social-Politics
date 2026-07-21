@@ -2,12 +2,12 @@
 
 namespace App\Api\Odata\Provider;
 
-use App\Api\Odata\Interface\ApiInterface;
-use App\Api\Odata\Interface\FilterInterface;
+use App\Interface\FilterInterface;
+use App\Interface\OdataInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-final class ApiProvider implements ApiInterface
+final class ApiProvider implements OdataInterface
 {
     public function __construct(
         private HttpClientInterface $governmentApiOdataUrl,

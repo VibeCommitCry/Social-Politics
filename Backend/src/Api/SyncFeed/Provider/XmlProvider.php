@@ -1,34 +1,34 @@
 <?php
 
-namespace App\Api\Syncfeed\Service;
+namespace App\Api\SyncFeed\Provider;
 
+use App\Interface\SyncFeedInterface;
 use Generator;
 use SimpleXMLElement;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class XmlService
+class XmlProvider implements SyncFeedInterface
 {
     private const NS_ATOM = 'http://www.w3.org/2005/Atom';
     private const NS_TK = 'http://www.tweedekamer.nl/xsd/tkData/v1-0';
 
     public function __construct(
-        private HttpClientInterface $http,
-        private string $governmentApiSyncfeedUrl,
+        private HttpClientInterface $governmentApiSyncFeedUrl,
     ) {
     }
 
     public function initialUrl(string $category): string
     {
-        return rtrim($this->governmentApiSyncfeedUrl, '/') . "/Feed?category={$category}&content=internal";
+        return "/Feed?category={$category}&content=internal";
     }
 
     /**
      * @return Generator<SimpleXMLElement>
      */
-    public function fetchAll(string $url, callable $onCursor): Generator
+    public function search(string $url, callable $onCursor): Generator
     {
         do {
-            $xml = new SimpleXMLElement($this->http->request('GET', $url)->getContent());
+            $xml = new SimpleXMLElement($this->governmentApiSyncFeedUrl->request('GET', $url)->getContent());
             $xml->registerXPathNamespace('atom', self::NS_ATOM);
             $xml->registerXPathNamespace('tk', self::NS_TK);
 
@@ -53,6 +53,7 @@ class XmlService
             $url = $nextUrl;
         } while ($url !== null && \count($entries) > 0);
     }
+
 
     /**
      * Resolves the resume URL for the sync cursor.
@@ -81,5 +82,4 @@ class XmlService
         return $links ? (string) $links[0] : null;
     }
 
-    
 }

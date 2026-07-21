@@ -2,9 +2,8 @@
 // src/Command/TestDocumentApiCommand.php
 
 namespace App\Command;
-use App\Api\Odata\Dto\DocumentDto;
 use App\Api\Odata\Filter\DocumentFilter;
-use App\Api\Odata\Interface\ApiInterface;
+use App\Interface\OdataInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +18,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class TestDocumentApiCommand extends Command
 {
     public function __construct(
-        private ApiInterface $apiProvider,
+        private OdataInterface $apiProvider,
     ) {
         parent::__construct();
     }

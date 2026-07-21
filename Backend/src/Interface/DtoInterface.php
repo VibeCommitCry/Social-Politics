@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Odata\Interface;
+namespace App\Interface;
 
 
 interface DtoInterface

@@ -2,8 +2,9 @@
 
 namespace App\Api\Odata\Filter;
 
-use App\Api\Odata\Enum\FractionField;
-use App\Api\Odata\Interface\FilterInterface;
+use App\Enum\FractionField;
+use App\Interface\FilterInterface;
+
 
 final class FractionFilter implements FilterInterface
 {

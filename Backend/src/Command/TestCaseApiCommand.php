@@ -3,9 +3,9 @@
 
 namespace App\Command;
 
-use App\Api\Odata\Dto\CaseDto;
 use App\Api\Odata\Filter\CaseFilter;
-use App\Api\Odata\Interface\ApiInterface;
+use App\Dto\CaseDto;
+use App\Interface\OdataInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +20,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class TestCaseApiCommand extends Command
 {
     public function __construct(
-        private ApiInterface $apiProvider,
+        private OdataInterface $apiProvider,
     ) {
         parent::__construct();
     }

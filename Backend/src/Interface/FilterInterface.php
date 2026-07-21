@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Api\Odata\Interface;
+namespace App\Interface;
 
 
 interface FilterInterface
 {
     public function toQueryParams(): array;
     public function endpoint(): string;
-    private function buildConditions(): array;
+    public function buildConditions(): array;
 
 }

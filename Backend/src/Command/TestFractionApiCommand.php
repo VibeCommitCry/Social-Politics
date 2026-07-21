@@ -3,10 +3,10 @@
 
 namespace App\Command;
 
-use App\Api\Odata\Dto\FractionDto;
-use App\Api\Odata\Enum\FractionField;
 use App\Api\Odata\Filter\FractionFilter;
-use App\Api\Odata\Interface\ApiInterface;
+use App\Dto\FractionDto;
+use App\Enum\FractionField;
+use App\Interface\OdataInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,7 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class TestFractionApiCommand extends Command
 {
     public function __construct(
-        private ApiInterface $apiProvider,
+        private OdataInterface $apiProvider,
     ) {
         parent::__construct();
     }
