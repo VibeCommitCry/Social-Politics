@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Fraction;
+use App\Interface\DtoInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

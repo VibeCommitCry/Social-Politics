@@ -4,6 +4,7 @@ namespace App\Api\Odata\Provider;
 
 use App\Interface\FilterInterface;
 use App\Interface\OdataInterface;
+use Generator;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
@@ -15,9 +16,9 @@ final class ApiProvider implements OdataInterface
     }
 
     /**
-     * @return \Generator<object>
+     * @return Generator<object>
      */
-    public function search(FilterInterface $filter, string $dto): \Generator
+    public function search(FilterInterface $filter, string $dto): Generator
     {
         $baseQuery = $filter->toQueryParams();
         $top = $baseQuery['$top'] ?? 250;
