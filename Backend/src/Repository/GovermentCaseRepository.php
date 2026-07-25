@@ -4,13 +4,16 @@ namespace App\Repository;
 
 use App\Dto\CaseDto;
 use App\Entity\GovermentCase;
+use App\Interface\DtoInterface;
+use App\Interface\ImportDtoInterface;
+use App\Interface\SyncableEntityInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<GovermentCase>
  */
-class GovermentCaseRepository extends ServiceEntityRepository
+class GovermentCaseRepository extends ServiceEntityRepository implements ImportDtoInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -53,7 +56,7 @@ class GovermentCaseRepository extends ServiceEntityRepository
         $case->setSubject($dto->subject);
         $case->setStartedOn($dto->date);
         $case->setOrganization($dto->room);
-        $case->setCurrentStatus($dto->currentStatus); // NEW — was missing, column was always empty
+        $case->setCurrentStatus($dto->currentStatus);
         $case->setCabinetPosition($dto->cabinetAppreciation);
         $case->setCompleted($dto->completed ?? false);
         $case->setDeleted($dto->deleted ?? false);
@@ -62,5 +65,36 @@ class GovermentCaseRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($case);
 
         return $case;
+    }
+
+    public function saveDtoAsEntity(DtoInterface $dto): void
+    {
+        if (!$dto instanceof CaseDto) {
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s', CaseDto::class, $dto::class));
+        }
+
+        $case = $this->find($dto->id) ?? new GovermentCase($dto->id);
+
+        $case->setNumber($dto->number);
+        $case->setType($dto->type);
+        $case->setTitle($dto->title);
+        $case->setSubject($dto->subject);
+        $case->setStartedOn($dto->date);
+        $case->setOrganization($dto->room);
+        $case->setCurrentStatus($dto->currentStatus);
+        $case->setCabinetPosition($dto->cabinetAppreciation);
+        $case->setCompleted($dto->completed ?? false);
+        $case->setDeleted($dto->deleted ?? false);
+        $case->setUpdatedAt($dto->modifiedOn);
+
+        $this->getEntityManager()->persist($case);
+
+        $this->flush();
+    }
+
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear();
     }
 }

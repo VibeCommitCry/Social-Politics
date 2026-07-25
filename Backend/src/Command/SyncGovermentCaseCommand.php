@@ -1,63 +1,70 @@
 <?php
 
 namespace App\Command;
-
-use App\Api\SyncFeed\Provider\XmlProvider;
-use App\Enum\CategoryEnum;
-use App\Repository\FractionRepository;
+use App\Api\Odata\Filter\CaseFilter;
+use App\Dto\CaseDto;
+use App\Interface\OdataInterface;
 use App\Repository\GovermentCaseRepository;
-use App\Repository\SyncCursorRepository;
-use App\Service\FractionService;
-use App\Service\GovermentCaseService;
+use App\Service\ImporterService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(
-    name: 'app:sync:govermentcase',
-    description: 'Sync Zaak (goverment case) data from the Tweede Kamer',
-)]
-class SyncGovermentCaseCommand extends Command
+#[AsCommand(name: 'app:sync:case', description: 'Sync Zaak from the last year via OData')]
+final class SyncGovermentCaseCommand extends Command
 {
-    private const Category = CategoryEnum::GOVERMENTCASE->value;
 
+    private const DTOCLASS = CaseDto::class;
     public function __construct(
-        private SyncCursorRepository $cursorRepo,
-        private XmlProvider $xmlProvider,
-        private GovermentCaseService $govermentCaseService,
-        private GovermentCaseRepository $govermentCaseRepo,
+        private OdataInterface $apiProvider,
+        private ImporterService $importerService,
     ) {
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this
+            ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
+            ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500);
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $cursor = $this->cursorRepo->find(self::Category);
-        $url = $cursor?->getNextUrl() ?? $this->xmlProvider->initialUrl(self::Category);
+        $max = (int) $input->getOption('max');
+
+        $filter = new CaseFilter(
+            top: (int) $input->getOption('top'),
+            room: 'Tweede Kamer',
+        );
+        
+        $importer = $this->importerService->importerForDto(self::DTOCLASS);
 
         try {
-            foreach ($this->xmlProvider->search($url, fn(string $next) => $this->cursorRepo->save(self::Category, $next)) as $node) {
-                $this->upsertFractie($node);
+            $count = 0;
+            foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
+                $importer->import($dto);
+                $count++;
+
+                if ($count % 250 === 0) {
+                    $output->writeln("Synced {$count} cases so far...");
+                }
+
+                if ($count >= $max) {
+                    $output->writeln("Reached max of {$max}, stopping.");
+                    break;
+                }
             }
 
-            $output->writeln('Goverment Case sync done.');
-
-        } catch (\Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface $e) {
-            $response = $e->getResponse();
-            dump($response->getStatusCode());
-            dump($response->getHeaders(false));
-            dump($response->getContent(false));
-            $output->writeln('Goverment Case sync failed.');
+            $output->writeln("Zaak sync done. {$count} total.");
+        } catch (\Throwable $e) {
+            $output->writeln('<error>Zaak sync failed: ' . $e->getMessage() . '</error>');
             return Command::FAILURE;
         }
 
         return Command::SUCCESS;
-    }
-
-    private function upsertFractie(\SimpleXMLElement $node): void
-    {
-        $data = $this->govermentCaseService->extractGovermentCaseData($node);
-        $this->govermentCaseRepo->createGovermentCaseFromArray($data);
     }
 }
