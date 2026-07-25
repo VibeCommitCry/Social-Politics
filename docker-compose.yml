@@ -1,4 +1,6 @@
 services:
+   
+
     backend:
         build:
             context: ./Backend
@@ -7,9 +9,13 @@ services:
             - ./Backend:/var/www/html
         environment:
             - APP_DEBUG=1
+            - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
         command: sh -c "composer install && php-fpm"
+        depends_on:
+            db:
+                condition: service_healthy
         healthcheck:
-            test: [ "CMD", "php-fpm", "-t" ] # just validates config; see note below
+            test: [ "CMD", "php-fpm", "-t" ]
             interval: 5s
             timeout: 3s
             retries: 10
@@ -47,6 +53,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+            start_period: 60s
         networks:
             - Social-Politics
 
