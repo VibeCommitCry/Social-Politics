@@ -12,37 +12,35 @@ class GovermentCase
     private string $id;
 
     #[ORM\Column(length: 20, nullable: true)]
-    private ?string $number = null;          // Nummer — lets you build a tweedekamer.nl link
-
+    private ?string $number = null;         
     #[ORM\Column(length: 50, nullable: true)]
-    private ?string $type = null;             // Soort — Motie / Wetsvoorstel / Amendement...
+    private ?string $type = null;             
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $title = null;            // Titel
+    private ?string $title = null;            
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $subject = null;          // Onderwerp — your short description
+    private ?string $subject = null;        
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?\DateTimeImmutable $startedOn = null; // GestartOp
+    private ?\DateTimeImmutable $startedOn = null;
 
     #[ORM\Column(length: 30, nullable: true)]
-    private ?string $organization = null;     // Organisatie — Tweede Kamer / Eerste Kamer / both
+    private ?string $organization = null;     
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $currentStatus = null;    
 
     #[ORM\Column(length: 100, nullable: true)]
-    private ?string $currentStatus = null;    // HuidigeBehandelstatus
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $cabinetPosition = null;  // Kabinetsappreciatie — cabinet's stance, only set on motions/amendments
+    private ?string $cabinetPosition = null;  
 
     #[ORM\Column(type: 'boolean')]
-    private bool $completed = false;          // Afgedaan
+    private bool $completed = false;         
 
     #[ORM\Column(type: 'boolean')]
-    private bool $deleted = false;            // Verwijderd
+    private bool $deleted = false;           
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null; // GewijzigdOp
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct(string $id)
     {

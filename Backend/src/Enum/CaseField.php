@@ -5,7 +5,6 @@ namespace App\Enum;
 enum CaseField: string
 {
     case Endpoint = 'Zaak';
-    case Dto = CaseDto::class;
     case Id = 'Id';
     case Number = 'Nummer';
     case Type = 'Soort';
