@@ -1,15 +1,14 @@
 services:
-   
 
     backend:
         build:
             context: ./Backend
-            dockerfile: Dockerfile
+            dockerfile: dockerfile
         volumes:
             - ./Backend:/var/www/html
         environment:
             - APP_DEBUG=1
-            - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
+            - DATABASE_URL=mysql://user:[REDACTED]@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
         command: sh -c "composer install && php-fpm"
         depends_on:
             db:
