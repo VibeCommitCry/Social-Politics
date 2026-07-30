@@ -30,7 +30,6 @@ final class ApiProvider implements OdataInterface
                 ? array_merge($baseQuery, ['$top' => $top, '$skip' => $skip])
                 : array_merge($baseQuery, [
                     '$top' => $top,
-                    '$expand' => 'Besluit', // to be moved
                 ]);
 
             try {

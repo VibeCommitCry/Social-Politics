@@ -29,6 +29,7 @@ final class SyncGovermentCaseCommand extends Command
     {
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
+            ->addOption('skip', null, InputOption::VALUE_REQUIRED, 'With pagination', false)
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500);
     }
 
@@ -40,6 +41,7 @@ final class SyncGovermentCaseCommand extends Command
             top: (int) $input->getOption('top'),
             room: 'Tweede Kamer',
             expandDecisions: true,
+            withSkip: (bool) $input->getOption('skip')
         );
 
         $caseImporter = $this->importerService->importerForDto(self::CASECLASS);
