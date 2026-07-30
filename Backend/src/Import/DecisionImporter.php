@@ -10,6 +10,8 @@ use App\Repository\GovermentCaseDecisionRepository;
 
 final class DecisionImporter implements ImporterInterface
 {
+        private const DTOSTRING = DecisionDto::class;
+
     public function __construct(
         private readonly DecisionRepository $decisionRepository,
         private readonly GovermentCaseDecisionRepository $caseDecisionRepository,
@@ -18,7 +20,7 @@ final class DecisionImporter implements ImporterInterface
 
     public function supports(string $dtoClass): bool
     {
-        return $dtoClass === DecisionDto::class;
+        return $dtoClass === self::DTOSTRING;
     }
 
     public function import(DtoInterface $dto): void
