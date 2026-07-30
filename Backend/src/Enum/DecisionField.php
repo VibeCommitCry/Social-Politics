@@ -6,6 +6,7 @@ enum DecisionField: string
 {
     case Endpoint = 'Besluit';
     case Id = 'Id';
+    case GovermentCases = "";
     case AgendaItemId = 'Agendapunt_Id';
     case VoteMethod = 'StemmingsSoort';
     case Type = 'BesluitSoort';

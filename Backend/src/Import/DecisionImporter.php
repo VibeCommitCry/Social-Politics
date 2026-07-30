@@ -3,32 +3,33 @@
 namespace App\Import;
 
 use App\Dto\DecisionDto;
-use App\Dto\FractionDto;
 use App\Interface\DtoInterface;
 use App\Interface\ImporterInterface;
 use App\Repository\DecisionRepository;
-use App\Repository\FractionRepository;
+use App\Repository\GovermentCaseDecisionRepository;
 
-
-
-class DecisionImporter implements ImporterInterface
+final class DecisionImporter implements ImporterInterface
 {
-
-    private const DTOSTRING = DecisionDto::class;
+        private const DTOSTRING = DecisionDto::class;
 
     public function __construct(
-                private readonly DecisionRepository $decisionRepository,
-
+        private readonly DecisionRepository $decisionRepository,
+        private readonly GovermentCaseDecisionRepository $caseDecisionRepository,
     ) {
     }
 
-
     public function supports(string $dtoClass): bool
     {
-        return self::DTOSTRING == $dtoClass;
+        return $dtoClass === self::DTOSTRING;
     }
+
     public function import(DtoInterface $dto): void
     {
+        if (!$dto instanceof DecisionDto) {
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
+        }
+        
         $this->decisionRepository->saveDtoAsEntity($dto);
+        $this->caseDecisionRepository->link($dto->caseId, $dto->id);
     }
 }

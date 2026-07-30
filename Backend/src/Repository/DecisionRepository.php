@@ -19,6 +19,7 @@ final class DecisionRepository extends ServiceEntityRepository
 
     public function saveDtoAsEntity(DtoInterface $dto): void
     {
+
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
@@ -39,9 +40,7 @@ final class DecisionRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->persist($decision);
 
-        if (++$this->count % 100 === 0) {
-            $this->flush();
-        }
+        $this->flush();
     }
 
     public function flush(): void

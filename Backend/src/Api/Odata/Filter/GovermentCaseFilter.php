@@ -2,11 +2,12 @@
 
 namespace App\Api\Odata\Filter;
 
-use App\Enum\CaseField;
+use App\Enum\DecisionField;
+use App\Enum\GovermentCaseField;
 use App\Interface\FilterInterface;
 
 
-final class CaseFilter implements FilterInterface
+final class GovermentCaseFilter implements FilterInterface
 {
     private readonly string $endpoint;
 
@@ -19,9 +20,10 @@ final class CaseFilter implements FilterInterface
         public readonly ?string $room = null,
         public readonly ?bool $completed = null,
         public readonly bool $withSkip = false,
+        public readonly bool $expandDecisions = false,
 
     ) {
-        $this->endpoint = CaseField::Endpoint->value;
+        $this->endpoint = GovermentCaseField::Endpoint->value;
     }
 
     public function endpoint(): string
@@ -45,6 +47,10 @@ final class CaseFilter implements FilterInterface
             $params['$orderby'] = sprintf('%s %s', $this->orderBy, $this->orderDirection);
         }
 
+        if ($this->expandDecisions) {
+            $params['$expand'] = DecisionField::Endpoint;
+        }
+
         return $params;
     }
 
@@ -56,13 +62,13 @@ final class CaseFilter implements FilterInterface
         $conditions = [];
 
         if (!$this->includeDeleted) {
-            $conditions[] = CaseField::Deleted->value . ' eq false';
+            $conditions[] = GovermentCaseField::Deleted->value . ' eq false';
         }
 
         if ($this->type !== null) {
             $conditions[] = sprintf(
                 "%s eq '%s'",
-                CaseField::Type->value,
+                GovermentCaseField::Type->value,
                 str_replace("'", "''", $this->type)
             );
         }
@@ -70,7 +76,7 @@ final class CaseFilter implements FilterInterface
         if ($this->room !== null) {
             $conditions[] = sprintf(
                 "%s eq '%s'",
-                CaseField::Room->value,
+                GovermentCaseField::Room->value,
                 str_replace("'", "''", $this->room)
             );
         }
@@ -78,7 +84,7 @@ final class CaseFilter implements FilterInterface
         if ($this->completed !== null) {
             $conditions[] = sprintf(
                 '%s eq %s',
-                CaseField::Completed->value,
+                GovermentCaseField::Completed->value,
                 $this->completed ? 'true' : 'false'
             );
         }
