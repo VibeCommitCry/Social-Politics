@@ -2,42 +2,39 @@
 
 namespace App\Repository;
 
+use App\Entity\Decision;
+use App\Entity\GovermentCase;
 use App\Entity\GovermentCaseDecision;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<GovermentCaseDecision>
- */
-class GovermentCaseDecisionRepository extends ServiceEntityRepository
+final class GovermentCaseDecisionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, GovermentCaseDecision::class);
     }
 
-//    /**
-//     * @return GovermentCaseDecision[] Returns an array of GovermentCaseDecision objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('g')
-//            ->andWhere('g.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('g.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function link(string $caseId, string $decisionId): void
+    {
+        if ($this->find(['govermentCase' => $caseId, 'decision' => $decisionId]) !== null) {
+            return;
+        }
 
-//    public function findOneBySomeField($value): ?GovermentCaseDecision
-//    {
-//        return $this->createQueryBuilder('g')
-//            ->andWhere('g.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        $em = $this->getEntityManager();
+
+        $pivot = new GovermentCaseDecision(
+            $em->getReference(GovermentCase::class, $caseId),
+            $em->getReference(Decision::class, $decisionId),
+        );
+
+        $em->persist($pivot);
+        $this->flush();
+    }
+
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear();
+    }
 }

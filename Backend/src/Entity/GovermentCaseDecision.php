@@ -10,12 +10,12 @@ class GovermentCaseDecision
 {
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: GovermentCase::class)]
-    #[ORM\JoinColumn(name: 'goverment_case_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'goverment_case_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private GovermentCase $govermentCase;
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Decision::class)]
-    #[ORM\JoinColumn(name: 'decision_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'decision_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Decision $decision;
 
     public function __construct(GovermentCase $govermentCase, Decision $decision)

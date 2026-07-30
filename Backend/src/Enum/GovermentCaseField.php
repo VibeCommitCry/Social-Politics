@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-enum CaseField: string
+enum GovermentCaseField: string
 {
     case Endpoint = 'Zaak';
     case Id = 'Id';
@@ -24,5 +24,5 @@ enum CaseField: string
     case Deleted = 'Verwijderd';
     case CabinetAppreciation = 'Kabinetsappreciatie';
     case CurrentStatus = 'HuidigeBehandelstatus';
-
+    case DecisionArray = 'Besluit';
 }

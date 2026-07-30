@@ -1,15 +1,14 @@
 <?php
 
 namespace App\Command;
-use App\Api\Odata\Filter\CaseFilter;
-use App\Dto\CaseDto;
+use App\Api\Odata\Filter\GovermentCaseFilter;
+use App\Dto\DecisionDto;
+use App\Dto\GovermentCaseDto;
 use App\Interface\OdataInterface;
-use App\Repository\GovermentCaseRepository;
 use App\Service\ImporterService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface; 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -17,7 +16,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class SyncGovermentCaseCommand extends Command
 {
 
-    private const DTOCLASS = CaseDto::class;
+    private const CASECLASS = GovermentCaseDto::class;
+    private const DECISIONCLASS = DecisionDto::class;
     public function __construct(
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
@@ -36,17 +36,27 @@ final class SyncGovermentCaseCommand extends Command
     {
         $max = (int) $input->getOption('max');
 
-        $filter = new CaseFilter(
+        $filter = new GovermentCaseFilter(
             top: (int) $input->getOption('top'),
             room: 'Tweede Kamer',
+            expandDecisions: true,
         );
-        
-        $importer = $this->importerService->importerForDto(self::DTOCLASS);
+
+        $caseImporter = $this->importerService->importerForDto(self::CASECLASS);
+        $decisionImporter = $this->importerService->importerForDto(self::DECISIONCLASS);
 
         try {
             $count = 0;
-            foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
-                $importer->import($dto);
+            foreach ($this->apiProvider->search($filter, self::CASECLASS) as $dto) {
+                $caseImporter->import($dto);
+
+                if ($dto->decisions) {
+                    foreach ($dto->decisions as $decision)
+                        $decision->caseId = $dto->id; 
+                        $decisionImporter->import($decision);
+                }
+
+
                 $count++;
 
                 if ($count % 250 === 0) {

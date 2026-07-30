@@ -12,6 +12,7 @@ final class DecisionDto implements DtoInterface
 {
     public function __construct(
         public readonly ?string $id = null,
+        public ?string $caseId = null,
         public readonly ?string $agendaItemId = null,
         public readonly ?DecisionVoteMethod $voteMethod = null,
         public readonly ?string $type = null,
@@ -25,10 +26,11 @@ final class DecisionDto implements DtoInterface
     ) {
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, ?string $caseId = null): self
     {
         return new self(
             id: $data[DecisionField::Id->value] ?? null,
+            caseId: $caseId !== null,
             agendaItemId: $data[DecisionField::AgendaItemId->value] ?? null,
             voteMethod: self::toVoteMethod($data[DecisionField::VoteMethod->value] ?? null),
             type: $data[DecisionField::Type->value] ?? null,
