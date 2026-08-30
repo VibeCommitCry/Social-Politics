@@ -19,7 +19,6 @@ final class DecisionRepository extends ServiceEntityRepository
 
     public function saveDtoAsEntity(DtoInterface $dto): void
     {
-
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
@@ -28,7 +27,6 @@ final class DecisionRepository extends ServiceEntityRepository
 
         $decision->setId($dto->id);
         $decision->setAgendaItemId($dto->agendaItemId);
-        $decision->setVoteMethod($dto->voteMethod);
         $decision->setType($dto->type);
         $decision->setText($dto->text);
         $decision->setRemark($dto->remark);

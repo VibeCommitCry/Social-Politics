@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Enum\DecisionStatus;
-use App\Enum\DecisionVoteMethod;
 use App\Repository\DecisionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,9 +14,6 @@ class Decision
 
     #[ORM\Column(type: 'guid')]
     private string $agendaItemId;
-
-    #[ORM\Column(enumType: DecisionVoteMethod::class, nullable: true)]
-    private ?DecisionVoteMethod $voteMethod = null;
 
     #[ORM\Column(nullable: true)]
     private ?string $type = null;
@@ -63,18 +59,6 @@ class Decision
     public function setAgendaItemId(string $agendaItemId): static
     {
         $this->agendaItemId = $agendaItemId;
-
-        return $this;
-    }
-
-    public function getVoteMethod(): ?DecisionVoteMethod
-    {
-        return $this->voteMethod;
-    }
-
-    public function setVoteMethod(?DecisionVoteMethod $voteMethod): static
-    {
-        $this->voteMethod = $voteMethod;
 
         return $this;
     }
