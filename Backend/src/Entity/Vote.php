@@ -12,8 +12,9 @@ class Vote
     #[ORM\Id, ORM\Column(type: 'guid')]
     private ?string $id = null;
 
-    #[ORM\Column(type: 'guid')]
-    private string $decisionId;
+    #[ORM\ManyToOne(targetEntity: Decision::class, inversedBy: 'votes')]
+    #[ORM\JoinColumn(name: 'decision_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private ?Decision $decision = null;
 
     #[ORM\Column(enumType: VoteType::class, nullable: true)]
     private ?VoteType $type = null;
@@ -57,16 +58,22 @@ class Vote
         return $this;
     }
 
-    public function getDecisionId(): string
+
+    public function getDecision(): ?Decision
     {
-        return $this->decisionId;
+        return $this->decision;
     }
 
-    public function setDecisionId(string $decisionId): static
+    public function setDecision(?Decision $decision): static
     {
-        $this->decisionId = $decisionId;
+        $this->decision = $decision;
 
         return $this;
+    }
+
+    public function getDecisionId(): ?string
+    {
+        return $this->decision?->getId();
     }
 
     public function getType(): ?VoteType

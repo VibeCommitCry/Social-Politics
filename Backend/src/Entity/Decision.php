@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Enum\DecisionStatus;
 use App\Repository\DecisionRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DecisionRepository::class)]
@@ -38,6 +39,41 @@ class Decision
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $deleted = null;
+
+    /**
+     * @var Collection<int, Vote>
+     */
+    #[ORM\OneToMany(mappedBy: 'decision', targetEntity: Vote::class, orphanRemoval: true)]
+    private Collection $votes;
+
+    /**
+     * @return Collection<int, Vote>
+     */
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function addVote(Vote $vote): static
+    {
+        if (!$this->votes->contains($vote)) {
+            $this->votes->add($vote);
+            $vote->setDecision($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVote(Vote $vote): static
+    {
+        if ($this->votes->removeElement($vote)) {
+            if ($vote->getDecision() === $this) {
+                $vote->setDecision(null);
+            }
+        }
+
+        return $this;
+    }
 
     public function getId(): ?string
     {
