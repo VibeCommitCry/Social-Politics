@@ -7,6 +7,7 @@ use App\Entity\Fraction;
 use App\Interface\DtoInterface;
 use App\Interface\ImportDtoInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,25 +19,7 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
     {
         parent::__construct($registry, Fraction::class);
     }
-
-    public function createFractionFromArray(array $data): Fraction
-    {
-        $fractie = $this->find($data['id']) ?? new Fraction($data['id']);
-
-        $fractie->setAbbreviation($data['abbreviation']);
-        $fractie->setNameNl($data['nameNl']);
-        $fractie->setNameEN($data['nameEn']);
-        $fractie->setSeatCount($data['seatCount']);
-        $fractie->setDeleted($data['deleted']);
-
-        $this->getEntityManager()->persist($fractie);
-        $this->getEntityManager()->flush();
-        $this->getEntityManager()->clear();
-
-        return $fractie;
-    }
-
-      public function saveDtoAsEntity(DtoInterface $dto): void
+    public function saveDtoAsEntity(DtoInterface $dto): void
     {
         if (!$dto instanceof FractionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', FractionDto::class, $dto::class));
@@ -63,5 +46,18 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
     {
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+    }
+
+    public function findActive(): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.deleted = false')
+            ->andWhere('f.activeUntil IS NULL OR f.activeUntil >= :now')
+            ->andWhere('f.seatCount IS NOT NULL')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->orderBy('f.seatCount', 'DESC')
+            ->select('f.abbreviation', 'f.nameNl', 'f.nameEn', 'f.seatCount')
+            ->getQuery()
+            ->getResult();
     }
 }
