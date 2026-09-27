@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Dto\VoteDto;
 use App\Entity\Decision;
+use App\Entity\Fraction;
 use App\Entity\Vote;
 use App\Interface\DtoInterface;
 use App\Interface\ImportDtoInterface;
@@ -25,17 +26,18 @@ class VoteRepository extends ServiceEntityRepository implements ImportDtoInterfa
         if (!$dto instanceof VoteDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', VoteDto::class, $dto::class));
         }
+
         $vote = $this->find($dto->id) ?? new Vote();
 
         $vote->setId($dto->id);
-        $vote->setDecision($this->resolveDecisionReference($dto->decisionId));
+        $vote->setDecision($this->resolveReference(Decision::class, $dto->decisionId));
+        $vote->setFraction($this->resolveReference(Fraction::class, $dto->fractionId));
         $vote->setType($dto->type);
         $vote->setFractionSize($dto->fractionSize);
-        $vote->setActorName($dto->actorName);
         $vote->setFractionName($dto->actorFraction);
+        $vote->setActorName($dto->actorName);
         $vote->setMistake($dto->mistake);
         $vote->setPersonId($dto->personId);
-        $vote->setFractionId($dto->fractionId);
         $vote->setModifiedOn($dto->modifiedOn);
         $vote->setApiModifiedOn($dto->apiModifiedOn);
         $vote->setDeleted($dto->deleted ?? false);
@@ -45,13 +47,13 @@ class VoteRepository extends ServiceEntityRepository implements ImportDtoInterfa
         $this->flush();
     }
 
-    private function resolveDecisionReference(?string $decisionId): ?Decision
+    private function resolveReference(string $class, ?string $id): ?object
     {
-        if ($decisionId === null) {
+        if ($id === null) {
             return null;
         }
 
-        return $this->getEntityManager()->getReference(Decision::class, $decisionId);
+        return $this->getEntityManager()->getReference($class, $id);
     }
 
     public function flush(): void

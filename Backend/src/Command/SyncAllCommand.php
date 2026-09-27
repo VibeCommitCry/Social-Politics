@@ -15,10 +15,11 @@ class SyncAllCommand extends Command
         $application = $this->getApplication();
 
         $order = [
+            'app:sync:fraction',      // pull fractie
             'app:sync:case',      // pulls Zaak + linked Besluit
             'app:sync:decision',  // pulls remaining Besluit not attached to any Zaak
             'app:sync:vote',      // depends on Besluit existing
-        ];
+            ];
 
         foreach ($order as $name) {
             $output->writeln("<info>Running {$name}...</info>");
