@@ -12,8 +12,13 @@ class Vote
     #[ORM\Id, ORM\Column(type: 'guid')]
     private ?string $id = null;
 
-    #[ORM\Column(type: 'guid')]
-    private string $decisionId;
+    #[ORM\ManyToOne(targetEntity: Decision::class, inversedBy: 'votes')]
+    #[ORM\JoinColumn(name: 'decision_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private ?Decision $decision = null;
+
+    #[ORM\ManyToOne(targetEntity: Fraction::class)]
+    #[ORM\JoinColumn(name: 'fraction_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    private ?Fraction $fraction = null;
 
     #[ORM\Column(enumType: VoteType::class, nullable: true)]
     private ?VoteType $type = null;
@@ -22,19 +27,16 @@ class Vote
     private ?int $fractionSize = null;
 
     #[ORM\Column(nullable: true)]
-    private ?string $actorName = null;
+    private ?string $fractionName = null;
 
     #[ORM\Column(nullable: true)]
-    private ?string $fractionName = null;
+    private ?string $actorName = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $mistake = null;
 
     #[ORM\Column(type: 'guid', nullable: true)]
     private ?string $personId = null;
-
-    #[ORM\Column(type: 'guid', nullable: true)]
-    private ?string $fractionId = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $modifiedOn = null;
@@ -57,16 +59,38 @@ class Vote
         return $this;
     }
 
-    public function getDecisionId(): string
+    public function getDecision(): ?Decision
     {
-        return $this->decisionId;
+        return $this->decision;
     }
 
-    public function setDecisionId(string $decisionId): static
+    public function setDecision(?Decision $decision): static
     {
-        $this->decisionId = $decisionId;
+        $this->decision = $decision;
 
         return $this;
+    }
+
+    public function getDecisionId(): ?string
+    {
+        return $this->decision?->getId();
+    }
+
+    public function getFraction(): ?Fraction
+    {
+        return $this->fraction;
+    }
+
+    public function setFraction(?Fraction $fraction): static
+    {
+        $this->fraction = $fraction;
+
+        return $this;
+    }
+
+    public function getFractionId(): ?string
+    {
+        return $this->fraction?->getId();
     }
 
     public function getType(): ?VoteType
@@ -93,18 +117,6 @@ class Vote
         return $this;
     }
 
-    public function getActorName(): ?string
-    {
-        return $this->actorName;
-    }
-
-    public function setActorName(?string $actorName): static
-    {
-        $this->actorName = $actorName;
-
-        return $this;
-    }
-
     public function getFractionName(): ?string
     {
         return $this->fractionName;
@@ -113,6 +125,18 @@ class Vote
     public function setFractionName(?string $fractionName): static
     {
         $this->fractionName = $fractionName;
+
+        return $this;
+    }
+
+    public function getActorName(): ?string
+    {
+        return $this->actorName;
+    }
+
+    public function setActorName(?string $actorName): static
+    {
+        $this->actorName = $actorName;
 
         return $this;
     }
@@ -137,18 +161,6 @@ class Vote
     public function setPersonId(?string $personId): static
     {
         $this->personId = $personId;
-
-        return $this;
-    }
-
-    public function getFractionId(): ?string
-    {
-        return $this->fractionId;
-    }
-
-    public function setFractionId(?string $fractionId): static
-    {
-        $this->fractionId = $fractionId;
 
         return $this;
     }

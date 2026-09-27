@@ -10,7 +10,7 @@ use App\Repository\GovermentCaseDecisionRepository;
 
 final class DecisionImporter implements ImporterInterface
 {
-        private const DTOSTRING = DecisionDto::class;
+    private const DTOSTRING = DecisionDto::class;
 
     public function __construct(
         private readonly DecisionRepository $decisionRepository,
@@ -28,8 +28,10 @@ final class DecisionImporter implements ImporterInterface
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
-        
+
         $this->decisionRepository->saveDtoAsEntity($dto);
-        $this->caseDecisionRepository->link($dto->caseId, $dto->id);
+        if ($dto->caseId != null) {
+            $this->caseDecisionRepository->link($dto->caseId, $dto->id);
+        }
     }
 }

@@ -5,15 +5,18 @@ namespace App\Api\Odata\Filter;
 use App\Enum\VoteField;
 use App\Interface\FilterInterface;
 
-
 final class VoteFilter implements FilterInterface
 {
     private readonly string $endpoint;
 
+    /**
+     * @param string[] $decisionIds
+     */
     public function __construct(
-        public readonly int $top = 5,
+        public readonly int $top = 250,
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
+        private readonly array $decisionIds = [],
     ) {
         $this->endpoint = VoteField::Endpoint->value;
     }
@@ -27,6 +30,7 @@ final class VoteFilter implements FilterInterface
     {
         $params = [
             '$top' => $this->top,
+            '$orderby' => 'GewijzigdOp desc',
         ];
 
         $conditions = $this->buildConditions();
@@ -47,6 +51,14 @@ final class VoteFilter implements FilterInterface
 
         if (!$this->includeDeleted) {
             $conditions[] = VoteField::Deleted->value . ' eq false';
+        }
+
+        if ($this->decisionIds !== []) {
+            $conditions[] = sprintf(
+                '%s in (%s)',
+                VoteField::DecisionId->value,
+                implode(',', $this->decisionIds)
+            );
         }
 
         return $conditions;

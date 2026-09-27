@@ -7,7 +7,7 @@ use App\Interface\OdataInterface;
 use App\Service\ImporterService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface; 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -36,8 +36,9 @@ final class SyncDecisionCommand extends Command
 
         $filter = new DecisionFilter(
             top: (int) $input->getOption('top'),
+            withSkip: true,
         );
-        
+
         $importer = $this->importerService->importerForDto(self::DTOCLASS);
 
         try {

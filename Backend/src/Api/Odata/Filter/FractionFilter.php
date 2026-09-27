@@ -59,10 +59,6 @@ final class FractionFilter implements FilterInterface
             $conditions[] = FractionField::DutchName->value . ' ne null';
         }
 
-        if (!$this->includeInactiveFraction) {
-            $conditions[] = FractionField::ActiveUntil->value . ' eq null';
-        }
-
         if ($this->searchByName) {
             $conditions[] = sprintf(
                 "%s eq '%s'",

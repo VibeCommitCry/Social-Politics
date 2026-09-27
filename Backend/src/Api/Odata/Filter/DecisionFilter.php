@@ -11,6 +11,8 @@ final class DecisionFilter implements FilterInterface
         private readonly int $top = 250,
         private readonly bool $includeDeleted = false,
         private readonly ?string $agendaItemId = null,
+        public readonly bool $withSkip = false,
+
     ) {
     }
 
@@ -31,7 +33,10 @@ final class DecisionFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        $query = ['$top' => $this->top];
+        $query = [
+            '$top' => $this->top,
+            '$orderby' => 'GewijzigdOp desc',
+        ];
 
         $conditions = $this->buildConditions();
 
@@ -49,6 +54,6 @@ final class DecisionFilter implements FilterInterface
 
     public function withSkip(): bool
     {
-        return true;
+        return $this->withSkip;
     }
 }

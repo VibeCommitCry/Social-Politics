@@ -4,7 +4,6 @@ namespace App\Dto;
 
 use App\Interface\DtoInterface;
 use App\Enum\DecisionField;
-use App\Enum\DecisionVoteMethod;
 use App\Enum\DecisionStatus;
 use DateTimeImmutable;
 
@@ -14,7 +13,6 @@ final class DecisionDto implements DtoInterface
         public readonly ?string $id = null,
         public ?string $caseId = null,
         public readonly ?string $agendaItemId = null,
-        public readonly ?DecisionVoteMethod $voteMethod = null,
         public readonly ?string $type = null,
         public readonly ?string $text = null,
         public readonly ?string $remark = null,
@@ -30,9 +28,8 @@ final class DecisionDto implements DtoInterface
     {
         return new self(
             id: $data[DecisionField::Id->value] ?? null,
-            caseId: $caseId !== null,
+            caseId: $caseId,
             agendaItemId: $data[DecisionField::AgendaItemId->value] ?? null,
-            voteMethod: self::toVoteMethod($data[DecisionField::VoteMethod->value] ?? null),
             type: $data[DecisionField::Type->value] ?? null,
             text: $data[DecisionField::Text->value] ?? null,
             remark: $data[DecisionField::Remark->value] ?? null,
@@ -42,15 +39,6 @@ final class DecisionDto implements DtoInterface
             apiModifiedOn: self::toDate($data[DecisionField::ApiModifiedOn->value] ?? null),
             deleted: self::toBool($data[DecisionField::Deleted->value] ?? null),
         );
-    }
-
-    private static function toVoteMethod(?string $value): ?DecisionVoteMethod
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return DecisionVoteMethod::tryFrom($value);
     }
 
     private static function toStatus(?string $value): ?DecisionStatus

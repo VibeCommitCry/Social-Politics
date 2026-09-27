@@ -19,16 +19,13 @@ final class DecisionRepository extends ServiceEntityRepository
 
     public function saveDtoAsEntity(DtoInterface $dto): void
     {
-
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
-
         $decision = $this->find($dto->id) ?? new Decision();
 
         $decision->setId($dto->id);
         $decision->setAgendaItemId($dto->agendaItemId);
-        $decision->setVoteMethod($dto->voteMethod);
         $decision->setType($dto->type);
         $decision->setText($dto->text);
         $decision->setRemark($dto->remark);
@@ -47,5 +44,18 @@ final class DecisionRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+    }
+
+    public function findIds(?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select('d.id')
+            ->orderBy('d.modifiedOn', 'DESC');
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+
+        return array_column($qb->getQuery()->getScalarResult(), 'id');
     }
 }

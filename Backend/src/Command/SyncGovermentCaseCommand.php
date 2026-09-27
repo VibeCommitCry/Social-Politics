@@ -53,9 +53,10 @@ final class SyncGovermentCaseCommand extends Command
                 $caseImporter->import($dto);
 
                 if ($dto->decisions) {
-                    foreach ($dto->decisions as $decision)
-                        $decision->caseId = $dto->id; 
+                    foreach ($dto->decisions as $decision) {
+                        $decision->caseId = $dto->id;
                         $decisionImporter->import($decision);
+                    }
                 }
 
 
