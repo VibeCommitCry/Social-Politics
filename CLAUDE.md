@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `Backend/`: Symfony 8.1 on PHP 8.4, Doctrine ORM 3, PHPUnit 13. All application code lives here.
 - `Frontend/`: currently empty.
+- `ROADMAP.md`: the current stage-by-stage plan with status checkboxes. Read it first and update it as stages progress.
 - `Project-handover.md`: notes from an earlier session, including design decisions and known gaps. Some status rows in it are stale (for example, the fraction sync and `app:sync:all` now exist), so check the code before trusting it.
 
 ## Commands
