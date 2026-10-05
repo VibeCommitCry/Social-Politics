@@ -1,7 +1,5 @@
 <?php
 
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Tools\DsnParser;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -31,20 +29,16 @@ function refreshTestDatabase(): void
     $application = new Application($kernel);
     $application->setAutoExit(false);
 
-    echo "[1/4] Dropping test database...\n";
+    echo "[1/3] Dropping test database...\n";
     runCommand($application, 'doctrine:database:drop', ['--force' => true, '--if-exists' => true]);
     echo "      Done.\n";
 
-    echo "[2/4] Creating fresh test database...\n";
+    echo "[2/3] Creating fresh test database...\n";
     runCommand($application, 'doctrine:database:create', []);
     echo "      Done.\n";
 
-    echo "[3/4] Creating schema...\n";
+    echo "[3/3] Creating schema...\n";
     runCommand($application, 'doctrine:schema:create', []);
-    echo "      Done.\n";
-
-    echo "[4/4] Copying data from source...\n";
-    copyDataFromSource($kernel);
     echo "      Done.\n";
 
     echo "=== Bootstrap complete, running tests ===\n\n";
@@ -62,44 +56,4 @@ function runCommand(Application $application, string $name, array $params): void
     if (0 !== $exitCode) {
         throw new \RuntimeException(sprintf('Command "%s" failed: %s', $name, $output->fetch()));
     }
-}
-
-function copyDataFromSource(\App\Kernel $kernel): void
-{
-    $sourceUrl = $_SERVER['SOURCE_DATABASE_URL'] ?? null;
-
-    if ($sourceUrl === null) {
-        echo "      No SOURCE_DATABASE_URL configured, skipping copy.\n";
-        return;
-    }
-
-    /** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
-    $entityManager = $kernel->getContainer()->get('doctrine')->getManager();
-    $targetConnection = $entityManager->getConnection();
-
-    $dsnParser = new DsnParser(['mysql' => 'pdo_mysql']);
-    $sourceParams = $dsnParser->parse($sourceUrl);
-    $sourceConnection = DriverManager::getConnection($sourceParams);
-
-    $tables = $targetConnection->createSchemaManager()->listTableNames();
-
-    $targetConnection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-
-    foreach ($tables as $table) {
-        if ($table === 'doctrine_migration_versions') {
-            continue;
-        }
-
-        $targetConnection->executeStatement(sprintf('TRUNCATE TABLE `%s`', $table));
-
-        $rows = $sourceConnection->fetchAllAssociative(sprintf('SELECT * FROM `%s`', $table));
-
-        foreach ($rows as $row) {
-            $targetConnection->insert($table, $row);
-        }
-
-        echo sprintf("      %-30s %d row(s)\n", $table, count($rows));
-    }
-
-    $targetConnection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
 }

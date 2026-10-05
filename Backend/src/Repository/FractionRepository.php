@@ -27,13 +27,13 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
 
         $fraction = $this->find($dto->id) ?? new Fraction($dto->id);
 
-        $fraction->setAbbreviation($dto->abbreviation ?? false);
-        $fraction->setNameEn($dto->nameEN ?? false);
-        $fraction->setNameNl($dto->nameNL ?? false);
-        $fraction->setSeatCount($dto->seatCount ?? false);
-        $fraction->setVoteCount($dto->voteCount ?? false);
-        $fraction->setActiveFrom($dto->activeFrom ?? false);
-        $fraction->setActiveUntil($dto->activeUntil ?? null);
+        $fraction->setAbbreviation($dto->abbreviation);
+        $fraction->setNameEn($dto->nameEN);
+        $fraction->setNameNl($dto->nameNL);
+        $fraction->setSeatCount($dto->seatCount);
+        $fraction->setVoteCount($dto->voteCount);
+        $fraction->setActiveFrom($dto->activeFrom);
+        $fraction->setActiveUntil($dto->activeUntil);
         $fraction->setDeleted($dto->deleted ?? false);
         $fraction->setUpdatedAt($dto->modifiedOn);
 

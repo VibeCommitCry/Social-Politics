@@ -17,7 +17,7 @@ class Vote
     private ?Decision $decision = null;
 
     #[ORM\ManyToOne(targetEntity: Fraction::class)]
-    #[ORM\JoinColumn(name: 'fraction_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'fraction_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Fraction $fraction = null;
 
     #[ORM\Column(enumType: VoteType::class, nullable: true)]
