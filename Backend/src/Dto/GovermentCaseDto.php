@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Dto;
 
 use App\Enum\GovermentCaseField;
@@ -8,6 +10,9 @@ use DateTimeImmutable;
 
 final class GovermentCaseDto implements DtoInterface
 {
+    /**
+     * @param list<DecisionDto>|null $decisions
+     */
     public function __construct(
         public readonly ?string $id = null,
         public readonly ?string $number = null,
@@ -29,8 +34,7 @@ final class GovermentCaseDto implements DtoInterface
         public readonly ?bool $deleted = null,
         public readonly ?string $cabinetAppreciation = null,
         public readonly ?array $decisions = null,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {
@@ -54,7 +58,9 @@ final class GovermentCaseDto implements DtoInterface
             apiModifiedOn: self::toDate($data[GovermentCaseField::ApiModifiedOn->value] ?? null),
             deleted: self::toBool($data[GovermentCaseField::Deleted->value] ?? null),
             cabinetAppreciation: $data[GovermentCaseField::CabinetAppreciation->value] ?? null,
-            decisions: self::makeDecisionDtoArray($data[GovermentCaseField::DecisionArray->value]) ?? null,
+            decisions: isset($data[GovermentCaseField::DecisionArray->value])
+                ? self::makeDecisionDtoArray($data[GovermentCaseField::DecisionArray->value])
+                : null,
         );
     }
 
@@ -72,11 +78,16 @@ final class GovermentCaseDto implements DtoInterface
         return $value === null ? null : (bool) $value;
     }
 
+    /**
+     * @param list<array<string, mixed>> $decisionArray
+     *
+     * @return list<DecisionDto>
+     */
     private static function makeDecisionDtoArray(array $decisionArray): array
     {
         $array = [];
 
-        foreach($decisionArray as $decision){
+        foreach ($decisionArray as $decision) {
             array_push($array, DecisionDto::fromArray($decision));
         }
         return $array;

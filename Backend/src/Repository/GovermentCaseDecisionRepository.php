@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Decision;
@@ -8,6 +10,9 @@ use App\Entity\GovermentCaseDecision;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<GovermentCaseDecision>
+ */
 final class GovermentCaseDecisionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

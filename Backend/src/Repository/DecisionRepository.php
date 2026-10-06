@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Dto\DecisionDto;
@@ -8,10 +10,11 @@ use App\Interface\DtoInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Decision>
+ */
 final class DecisionRepository extends ServiceEntityRepository
 {
-    private int $count = 0;
-
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Decision::class);
@@ -22,9 +25,8 @@ final class DecisionRepository extends ServiceEntityRepository
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
-        $decision = $this->find($dto->id) ?? new Decision();
+        $decision = $this->find($dto->id) ?? new Decision($dto->id);
 
-        $decision->setId($dto->id);
         $decision->setAgendaItemId($dto->agendaItemId);
         $decision->setType($dto->type);
         $decision->setText($dto->text);
@@ -46,6 +48,9 @@ final class DecisionRepository extends ServiceEntityRepository
         $this->getEntityManager()->clear();
     }
 
+    /**
+     * @return list<string>
+     */
     public function findIds(?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('d')

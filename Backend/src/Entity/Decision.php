@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Enum\DecisionStatus;
 use App\Repository\DecisionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -11,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Decision
 {
     #[ORM\Id, ORM\Column(type: 'guid')]
-    private ?string $id = null;
+    private string $id;
 
     #[ORM\Column(type: 'guid')]
     private string $agendaItemId;
@@ -46,6 +49,12 @@ class Decision
     #[ORM\OneToMany(mappedBy: 'decision', targetEntity: Vote::class, orphanRemoval: true)]
     private Collection $votes;
 
+    public function __construct(string $id)
+    {
+        $this->id = $id;
+        $this->votes = new ArrayCollection();
+    }
+
     /**
      * @return Collection<int, Vote>
      */
@@ -66,25 +75,15 @@ class Decision
 
     public function removeVote(Vote $vote): static
     {
-        if ($this->votes->removeElement($vote)) {
-            if ($vote->getDecision() === $this) {
-                $vote->setDecision(null);
-            }
-        }
+        // A vote cannot exist without its decision; orphanRemoval deletes it on flush.
+        $this->votes->removeElement($vote);
 
         return $this;
     }
 
-    public function getId(): ?string
+    public function getId(): string
     {
         return $this->id;
-    }
-
-    public function setId(string $id): static
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     public function getAgendaItemId(): string

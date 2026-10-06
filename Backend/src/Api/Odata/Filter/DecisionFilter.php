@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Filter;
 
 use App\Enum\DecisionField;
@@ -12,9 +14,7 @@ final class DecisionFilter implements FilterInterface
         private readonly bool $includeDeleted = false,
         private readonly ?string $agendaItemId = null,
         public readonly bool $withSkip = false,
-
-    ) {
-    }
+    ) {}
 
     public function buildConditions(): array
     {

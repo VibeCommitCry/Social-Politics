@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\SyncFeed\Provider;
 
 use App\Interface\SyncFeedInterface;
@@ -14,8 +16,7 @@ class XmlProvider implements SyncFeedInterface
 
     public function __construct(
         private HttpClientInterface $governmentApiSyncFeedUrl,
-    ) {
-    }
+    ) {}
 
     public function initialUrl(string $category): string
     {
@@ -32,7 +33,7 @@ class XmlProvider implements SyncFeedInterface
             $xml->registerXPathNamespace('atom', self::NS_ATOM);
             $xml->registerXPathNamespace('tk', self::NS_TK);
 
-            $entries = $xml->xpath('//atom:entry');
+            $entries = $xml->xpath('//atom:entry') ?: [];
 
             foreach ($entries as $entry) {
                 $entry->registerXPathNamespace('atom', self::NS_ATOM);
@@ -67,6 +68,8 @@ class XmlProvider implements SyncFeedInterface
      * pointing to the feed page that starts at the following entity. This
      * exists regardless of category size, so we take the value from the
      * LAST entry processed on this page as the real resume point.
+     *
+     * @param SimpleXMLElement[] $entries
      */
     private function extractNextUrl(array $entries): ?string
     {

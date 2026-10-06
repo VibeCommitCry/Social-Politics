@@ -1,4 +1,7 @@
-FROM php:8.4-fpm-alpine
+# ========================================================
+# STAGE 1: Base Image (Common dependencies)
+# ========================================================
+FROM php:8.4-fpm-alpine AS base
 
 RUN apk add --no-cache \
     bash \
@@ -19,14 +22,48 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY . .
+EXPOSE 9000
 
-RUN composer install --no-interaction --optimize-autoloader
+# ========================================================
+# STAGE 2: Development Image (What you use right now)
+# ========================================================
+FROM base AS development
+
+# Copy configuration and dependency maps
+COPY composer.json composer.lock symfony.lock ./
+
+# Install dev dependencies (Docker layer caching)
+RUN composer install --no-interaction --no-scripts --no-autoloader
+
+COPY . .
+RUN composer dump-autoload
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 9000
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php-fpm"]
+
+# ========================================================
+# STAGE 3: Production Image (Highly optimized, zero bloat)
+# ========================================================
+FROM base AS production
+
+# Set production environment variable
+ENV APP_ENV=prod
+
+# Copy all application code
+COPY . .
+
+# Run composer install optimized for production (no dev dependencies)
+RUN composer install --no-interaction --no-scripts --no-dev --optimize-autoloader
+
+# Clear Symfony cache for production
+RUN php bin/console cache:clear --env=prod
+
+# Use a slimmed-down entrypoint for production (no blocking loops)
+COPY docker-entrypoint-prod.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]

@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
+
 use App\Api\Odata\Filter\GovermentCaseFilter;
 use App\Dto\DecisionDto;
 use App\Dto\GovermentCaseDto;
@@ -15,7 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:case', description: 'Sync Zaak from the last year via OData')]
 final class SyncGovermentCaseCommand extends Command
 {
-
     private const CASECLASS = GovermentCaseDto::class;
     private const DECISIONCLASS = DecisionDto::class;
     public function __construct(

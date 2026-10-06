@@ -4,12 +4,12 @@ services:
         build:
             context: ./Backend
             dockerfile: dockerfile
+            target: development 
         volumes:
             - ./Backend:/var/www/html
         environment:
             - APP_DEBUG=1
-            - DATABASE_URL=mysql://user:[REDACTED]@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
-        command: sh -c "composer install && php-fpm"
+            - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
         depends_on:
             db:
                 condition: service_healthy
@@ -21,6 +21,7 @@ services:
             start_period: 30s
         networks:
             - Social-Politics
+
 
     nginx:
         image: nginx:alpine
