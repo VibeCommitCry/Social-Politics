@@ -29,10 +29,14 @@ class VoteRepository extends ServiceEntityRepository implements ImportDtoInterfa
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', VoteDto::class, $dto::class));
         }
 
-        $vote = $this->find($dto->id) ?? new Vote();
+        if ($dto->decisionId === null) {
+            throw new \InvalidArgumentException(sprintf('Vote %s has no decision', $dto->id));
+        }
 
-        $vote->setId($dto->id);
-        $vote->setDecision($this->resolveReference(Decision::class, $dto->decisionId));
+        $em = $this->getEntityManager();
+        $vote = $this->find($dto->id) ?? new Vote($dto->id);
+
+        $vote->setDecision($em->getReference(Decision::class, $dto->decisionId));
         $vote->setFraction($this->resolveReference(Fraction::class, $dto->fractionId));
         $vote->setType($dto->type);
         $vote->setFractionSize($dto->fractionSize);
@@ -44,11 +48,18 @@ class VoteRepository extends ServiceEntityRepository implements ImportDtoInterfa
         $vote->setApiModifiedOn($dto->apiModifiedOn);
         $vote->setDeleted($dto->deleted ?? false);
 
-        $this->getEntityManager()->persist($vote);
+        $em->persist($vote);
 
         $this->flush();
     }
 
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $class
+     *
+     * @return T|null
+     */
     private function resolveReference(string $class, ?string $id): ?object
     {
         if ($id === null) {

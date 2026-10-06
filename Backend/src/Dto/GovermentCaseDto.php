@@ -10,6 +10,9 @@ use DateTimeImmutable;
 
 final class GovermentCaseDto implements DtoInterface
 {
+    /**
+     * @param list<DecisionDto>|null $decisions
+     */
     public function __construct(
         public readonly ?string $id = null,
         public readonly ?string $number = null,
@@ -55,7 +58,9 @@ final class GovermentCaseDto implements DtoInterface
             apiModifiedOn: self::toDate($data[GovermentCaseField::ApiModifiedOn->value] ?? null),
             deleted: self::toBool($data[GovermentCaseField::Deleted->value] ?? null),
             cabinetAppreciation: $data[GovermentCaseField::CabinetAppreciation->value] ?? null,
-            decisions: self::makeDecisionDtoArray($data[GovermentCaseField::DecisionArray->value]) ?? null,
+            decisions: isset($data[GovermentCaseField::DecisionArray->value])
+                ? self::makeDecisionDtoArray($data[GovermentCaseField::DecisionArray->value])
+                : null,
         );
     }
 
@@ -73,6 +78,11 @@ final class GovermentCaseDto implements DtoInterface
         return $value === null ? null : (bool) $value;
     }
 
+    /**
+     * @param list<array<string, mixed>> $decisionArray
+     *
+     * @return list<DecisionDto>
+     */
     private static function makeDecisionDtoArray(array $decisionArray): array
     {
         $array = [];

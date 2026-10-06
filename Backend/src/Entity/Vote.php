@@ -12,11 +12,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Vote
 {
     #[ORM\Id, ORM\Column(type: 'guid')]
-    private ?string $id = null;
+    private string $id;
 
     #[ORM\ManyToOne(targetEntity: Decision::class, inversedBy: 'votes')]
     #[ORM\JoinColumn(name: 'decision_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?Decision $decision = null;
+    private Decision $decision;
 
     #[ORM\ManyToOne(targetEntity: Fraction::class)]
     #[ORM\JoinColumn(name: 'fraction_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -49,33 +49,31 @@ class Vote
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $deleted = null;
 
-    public function getId(): ?string
+    public function __construct(string $id)
+    {
+        $this->id = $id;
+    }
+
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function setId(string $id): static
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getDecision(): ?Decision
+    public function getDecision(): Decision
     {
         return $this->decision;
     }
 
-    public function setDecision(?Decision $decision): static
+    public function setDecision(Decision $decision): static
     {
         $this->decision = $decision;
 
         return $this;
     }
 
-    public function getDecisionId(): ?string
+    public function getDecisionId(): string
     {
-        return $this->decision?->getId();
+        return $this->decision->getId();
     }
 
     public function getFraction(): ?Fraction

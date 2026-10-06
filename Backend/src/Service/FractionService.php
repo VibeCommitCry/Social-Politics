@@ -12,6 +12,9 @@ class FractionService
         private readonly FractionRepository $fractionRepository
     ) {}
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getFractionsWithSeats(): array
     {
         $d = $this->fractionRepository->findActive();

@@ -6,7 +6,8 @@ services:
             dockerfile: dockerfile
         volumes:
             - ./Backend:/var/www/html
-            - /var/www/html/vendor
+            # Keep Composer's dependencies available to host-side VS Code tooling.
+            - ./Backend/vendor:/var/www/html/vendor
         environment:
             - APP_DEBUG=1
             - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4

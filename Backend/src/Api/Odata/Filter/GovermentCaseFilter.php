@@ -48,7 +48,7 @@ final class GovermentCaseFilter implements FilterInterface
         }
 
         if ($this->expandDecisions) {
-            $params['$expand'] = DecisionField::Endpoint;
+            $params['$expand'] = DecisionField::Endpoint->value;
         }
 
         return $params;

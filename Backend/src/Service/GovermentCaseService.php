@@ -11,6 +11,8 @@ class GovermentCaseService
 
     /**
      * Extracts case (Zaak) fields from a raw <tk:zaak> XML node into a plain array.
+     *
+     * @return array<string, string|bool|null>
      */
     public function extractGovermentCaseData(\SimpleXMLElement $node): array
     {

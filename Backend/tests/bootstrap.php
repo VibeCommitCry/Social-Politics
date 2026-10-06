@@ -9,9 +9,7 @@ use Symfony\Component\Dotenv\Dotenv;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-if (method_exists(Dotenv::class, 'bootEnv')) {
-    new Dotenv()->bootEnv(dirname(__DIR__) . '/.env');
-}
+new Dotenv()->bootEnv(dirname(__DIR__) . '/.env');
 
 if ($_SERVER['APP_DEBUG']) {
     umask(0o000);
@@ -48,6 +46,9 @@ function refreshTestDatabase(): void
     $kernel->shutdown();
 }
 
+/**
+ * @param array<string, mixed> $params
+ */
 function runCommand(Application $application, string $name, array $params): void
 {
     $input = new ArrayInput(array_merge(['command' => $name], $params));

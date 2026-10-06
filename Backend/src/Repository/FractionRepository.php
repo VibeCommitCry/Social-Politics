@@ -50,6 +50,9 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
         $this->getEntityManager()->clear();
     }
 
+    /**
+     * @return list<array{abbreviation: ?string, nameNl: ?string, nameEn: ?string, seatCount: int}>
+     */
     public function findActive(): array
     {
         return $this->createQueryBuilder('f')
