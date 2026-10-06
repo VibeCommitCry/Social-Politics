@@ -1,29 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
-
+use App\Repository\FractionRepository;
 
 class FractionService
 {
     public function __construct(
-    ) {
-    }
+        private readonly FractionRepository $fractionRepository
+    ) {}
 
     /**
-     * Extracts fractie fields from a raw <tk:fractie> XML node into a plain array.
-     * Keeps XML-parsing concerns out of the repository/entity layer.
+     * @return list<array<string, mixed>>
      */
-    public function extractFractieData(\SimpleXMLElement $node): array
+    public function getFractionsWithSeats(): array
     {
-        return [
-            'id' => (string) $node['id'],
-            'abbreviation' => (string) $node->afkorting,
-            'nameNl' => (string) $node->naamNL,
-            'nameEn' => (string) $node->naamEN,
-            'seatCount' => (int) $node->aantalZetels,
-            'deleted' => filter_var($node['verwijderd'] ?? 'false', FILTER_VALIDATE_BOOL),
-        ];
+        $d = $this->fractionRepository->findActive();
+        return [];
     }
 
 }

@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Filter;
 
 use App\Enum\FractionField;
 use App\Interface\FilterInterface;
-
 
 final class FractionFilter implements FilterInterface
 {
@@ -15,7 +16,6 @@ final class FractionFilter implements FilterInterface
         public readonly string $orderDirection = 'desc',
         public readonly FractionField $orderBy = FractionField::SeatCount,
         public readonly bool $includeNamelessFraction = false,
-        public readonly bool $includeInactiveFraction = false,
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         public readonly ?string $searchByName = null,
@@ -57,10 +57,6 @@ final class FractionFilter implements FilterInterface
 
         if (!$this->includeNamelessFraction) {
             $conditions[] = FractionField::DutchName->value . ' ne null';
-        }
-
-        if (!$this->includeInactiveFraction) {
-            $conditions[] = FractionField::ActiveUntil->value . ' eq null';
         }
 
         if ($this->searchByName) {

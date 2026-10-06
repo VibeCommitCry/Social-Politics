@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enum;
 
-enum CaseField: string
+enum GovermentCaseField: string
 {
     case Endpoint = 'Zaak';
-    case Dto = CaseDto::class;
     case Id = 'Id';
     case Number = 'Nummer';
     case Type = 'Soort';
@@ -25,5 +26,5 @@ enum CaseField: string
     case Deleted = 'Verwijderd';
     case CabinetAppreciation = 'Kabinetsappreciatie';
     case CurrentStatus = 'HuidigeBehandelstatus';
-
+    case DecisionArray = 'Besluit';
 }

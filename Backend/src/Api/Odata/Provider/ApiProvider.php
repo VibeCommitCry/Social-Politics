@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Provider;
 
 use App\Interface\FilterInterface;
@@ -12,8 +14,7 @@ final class ApiProvider implements OdataInterface
 {
     public function __construct(
         private HttpClientInterface $governmentApiOdataUrl,
-    ) {
-    }
+    ) {}
 
     /**
      * @return Generator<object>
@@ -21,17 +22,20 @@ final class ApiProvider implements OdataInterface
     public function search(FilterInterface $filter, string $dto): Generator
     {
         $baseQuery = $filter->toQueryParams();
-        $top = $baseQuery['$top'] ?? 250;
+        $top = $baseQuery['$top'] ?? 10;
         $skip = 0;
         $paginate = $filter->withSkip();
 
         do {
             $query = $paginate
                 ? array_merge($baseQuery, ['$top' => $top, '$skip' => $skip])
-                : array_merge($baseQuery, ['$top' => $top]);
+                : array_merge($baseQuery, [
+                    '$top' => $top,
+                ]);
 
             try {
                 $response = $this->governmentApiOdataUrl->request('GET', $filter->endpoint(), ['query' => $query]);
+
                 $data = $response->toArray();
             } catch (TransportExceptionInterface $e) {
                 throw new \RuntimeException('API request failed', previous: $e);
@@ -45,6 +49,4 @@ final class ApiProvider implements OdataInterface
             $skip += $top;
         } while ($paginate && $count === $top);
     }
-
-
 }
