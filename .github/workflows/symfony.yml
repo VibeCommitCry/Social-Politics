@@ -69,5 +69,6 @@ jobs:
 
       - name: Execute tests
         env:
-          DATABASE_URL: mysql://user:secret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
+          # Root is required: tests/bootstrap.php drops and creates the politiconnect_test database.
+          DATABASE_URL: mysql://root:rootsecret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
         run: vendor/bin/phpunit
