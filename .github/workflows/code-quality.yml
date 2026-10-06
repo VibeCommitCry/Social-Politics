@@ -1,0 +1,48 @@
+name: PHPStan
+
+on:
+  pull_request:
+    branches: ["main", "Development"]
+
+permissions:
+  contents: read
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Backend
+
+    env:
+      # PHPStan only boots the kernel to read container and entity metadata; it never connects.
+      DATABASE_URL: mysql://root:rootsecret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv, pdo_mysql
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: Backend/vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-progress --prefer-dist --no-scripts
+
+      # phpstan.dist.neon reads var/cache/dev/App_KernelDevDebugContainer.xml
+      - name: Warm up dev cache
+        run: php bin/console cache:warmup --env=dev
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyze --no-progress --memory-limit=1G

@@ -1,0 +1,40 @@
+name: PHP CS Fixer
+
+on:
+  pull_request:
+    branches: ["main", "Development"]
+
+permissions:
+  contents: read
+
+jobs:
+  php-cs-fixer:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: Backend/vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Check code style
+        run: vendor/bin/php-cs-fixer check --diff --no-interaction
