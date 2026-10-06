@@ -11,6 +11,22 @@ jobs:
   symfony-tests:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: politiconnect
+          MYSQL_USER: user
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: rootsecret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -prootsecret"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     defaults:
       run:
         working-directory: Backend
@@ -22,7 +38,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: ctype, iconv, pdo_sqlite
+          extensions: ctype, iconv, pdo_mysql
           coverage: none
 
       - name: Copy .env.test.local
@@ -39,12 +55,19 @@ jobs:
       - name: Install dependencies
         run: composer install --no-ansi --no-interaction --no-progress --prefer-dist --no-scripts
 
-      - name: Create database
+      - name: Wait for MySQL
         run: |
-          mkdir -p data
-          touch data/database.sqlite
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -prootsecret --silent; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "MySQL did not become ready"
+          exit 1
 
       - name: Execute tests
         env:
-          DATABASE_URL: sqlite:///%kernel.project_dir%/data/database.sqlite
+          DATABASE_URL: mysql://user:secret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
         run: vendor/bin/phpunit
