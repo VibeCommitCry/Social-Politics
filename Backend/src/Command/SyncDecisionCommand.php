@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
+
 use App\Api\Odata\Filter\DecisionFilter;
 use App\Dto\DecisionDto;
 use App\Interface\OdataInterface;
@@ -14,7 +17,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:decision', description: 'Sync besluit from the last year via OData')]
 final class SyncDecisionCommand extends Command
 {
-
     private const DTOCLASS = DecisionDto::class;
     public function __construct(
         private OdataInterface $apiProvider,

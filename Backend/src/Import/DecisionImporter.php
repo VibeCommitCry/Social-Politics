@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Import;
 
 use App\Dto\DecisionDto;
@@ -15,8 +17,7 @@ final class DecisionImporter implements ImporterInterface
     public function __construct(
         private readonly DecisionRepository $decisionRepository,
         private readonly GovermentCaseDecisionRepository $caseDecisionRepository,
-    ) {
-    }
+    ) {}
 
     public function supports(string $dtoClass): bool
     {

@@ -1,14 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
-
-
 
 class GovermentCaseService
 {
     public function __construct(
-    ) {
-    }
+    ) {}
 
     /**
      * Extracts case (Zaak) fields from a raw <tk:zaak> XML node into a plain array.

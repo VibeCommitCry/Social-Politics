@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,7 +21,7 @@ class SyncAllCommand extends Command
             'app:sync:case',      // pulls Zaak + linked Besluit
             'app:sync:decision',  // pulls remaining Besluit not attached to any Zaak
             'app:sync:vote',      // depends on Besluit existing
-            ];
+        ];
 
         foreach ($order as $name) {
             $output->writeln("<info>Running {$name}...</info>");

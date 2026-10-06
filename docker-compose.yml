@@ -6,10 +6,10 @@ services:
             dockerfile: dockerfile
         volumes:
             - ./Backend:/var/www/html
+            - /var/www/html/vendor
         environment:
             - APP_DEBUG=1
             - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
-        command: sh -c "composer install && php-fpm"
         depends_on:
             db:
                 condition: service_healthy

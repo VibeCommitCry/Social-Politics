@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Filter;
 
 use App\Enum\DecisionField;
 use App\Enum\GovermentCaseField;
 use App\Interface\FilterInterface;
-
 
 final class GovermentCaseFilter implements FilterInterface
 {
@@ -21,7 +22,6 @@ final class GovermentCaseFilter implements FilterInterface
         public readonly ?bool $completed = null,
         public readonly bool $withSkip = false,
         public readonly bool $expandDecisions = false,
-
     ) {
         $this->endpoint = GovermentCaseField::Endpoint->value;
     }

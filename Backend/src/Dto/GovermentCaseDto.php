@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Dto;
 
 use App\Enum\GovermentCaseField;
@@ -29,8 +31,7 @@ final class GovermentCaseDto implements DtoInterface
         public readonly ?bool $deleted = null,
         public readonly ?string $cabinetAppreciation = null,
         public readonly ?array $decisions = null,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {
@@ -76,7 +77,7 @@ final class GovermentCaseDto implements DtoInterface
     {
         $array = [];
 
-        foreach($decisionArray as $decision){
+        foreach ($decisionArray as $decision) {
             array_push($array, DecisionDto::fromArray($decision));
         }
         return $array;

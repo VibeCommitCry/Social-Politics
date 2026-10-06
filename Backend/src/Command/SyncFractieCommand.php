@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
+
 use App\Api\Odata\Filter\FractionFilter;
 use App\Dto\FractionDto;
 use App\Enum\FractionField;
@@ -15,7 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:fraction', description: 'Sync all Fractie (including dissolved ones) via OData')]
 final class SyncFractieCommand extends Command
 {
-
     private const DTOCLASS = FractionDto::class;
     public function __construct(
         private OdataInterface $apiProvider,
@@ -45,7 +47,7 @@ final class SyncFractieCommand extends Command
             includeNamelessFraction: true,
             withSkip: true,
         );
-        
+
         $importer = $this->importerService->importerForDto(self::DTOCLASS);
 
         try {

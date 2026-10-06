@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Filter;
 
 use App\Enum\FractionField;
 use App\Interface\FilterInterface;
-
 
 final class FractionFilter implements FilterInterface
 {

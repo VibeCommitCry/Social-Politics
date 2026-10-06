@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\Odata\Provider;
 
 use App\Interface\FilterInterface;
@@ -12,8 +14,7 @@ final class ApiProvider implements OdataInterface
 {
     public function __construct(
         private HttpClientInterface $governmentApiOdataUrl,
-    ) {
-    }
+    ) {}
 
     /**
      * @return Generator<object>

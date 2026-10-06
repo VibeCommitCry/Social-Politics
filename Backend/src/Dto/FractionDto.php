@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Dto;
 
 use App\Interface\DtoInterface;
@@ -23,8 +25,7 @@ final class FractionDto implements DtoInterface
         public readonly ?DateTimeImmutable $modifiedOn = null,
         public readonly ?DateTimeImmutable $apiModifiedOn = null,
         public readonly ?bool $deleted = null,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {

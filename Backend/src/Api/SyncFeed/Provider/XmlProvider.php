@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\SyncFeed\Provider;
 
 use App\Interface\SyncFeedInterface;
@@ -14,8 +16,7 @@ class XmlProvider implements SyncFeedInterface
 
     public function __construct(
         private HttpClientInterface $governmentApiSyncFeedUrl,
-    ) {
-    }
+    ) {}
 
     public function initialUrl(string $category): string
     {
