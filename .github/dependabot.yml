@@ -1,12 +1,47 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # PHP dependencies (Symfony, Doctrine, PHPUnit, PHPStan, ...)
+  - package-ecosystem: "composer"
+    directory: "/Backend"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    target-branch: "Development"
+    groups:
+      symfony:
+        patterns:
+          - "symfony/*"
+      doctrine:
+        patterns:
+          - "doctrine/*"
+      dev-tools:
+        dependency-type: "development"
+    labels:
+      - "dependencies"
 
+  # php:8.4-fpm-alpine base image in Backend/dockerfile
+  - package-ecosystem: "docker"
+    directory: "/Backend"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"
+
+  # mysql and nginx images in docker-compose.yml
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"
+
+  # Actions used in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"
