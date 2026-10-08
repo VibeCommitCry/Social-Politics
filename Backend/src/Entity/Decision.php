@@ -102,6 +102,22 @@ class Decision
         return $this;
     }
 
+    /**
+     * The day this decision was voted on: Activity.Datum reached through the agenda point,
+     * as a date in Europe/Amsterdam. Null when the agenda point, the activity or its date is unknown.
+     */
+    public function getVotedOn(): ?\DateTimeImmutable
+    {
+        $date = $this->agendaPoint?->getActivity()?->getDate();
+
+        if ($date === null) {
+            return null;
+        }
+
+        // The column holds Amsterdam wall-clock time but Doctrine hydrates it in the PHP default time zone.
+        return new \DateTimeImmutable($date->format('Y-m-d'), new \DateTimeZone('Europe/Amsterdam'));
+    }
+
     public function getAgendaItemId(): string
     {
         return $this->agendaItemId;

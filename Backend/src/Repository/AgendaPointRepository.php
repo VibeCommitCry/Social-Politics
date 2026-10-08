@@ -75,19 +75,6 @@ class AgendaPointRepository extends ServiceEntityRepository implements ImportDto
             ->setParameter('id', $agendaPoint->getId())
             ->execute();
     }
-    /**
-     * Agenda points synced before this activity existed are linked now, so sync order does not matter.
-     */
-    private function linkPendingAgendaPoints(Activity $activity): void
-    {
-        $this->getEntityManager()->createQuery(
-            'UPDATE ' . AgendaPoint::class . ' p SET p.activity = :activity'
-                . ' WHERE p.activitySourceId = :id AND p.activity IS NULL'
-        )
-            ->setParameter('activity', $activity)
-            ->setParameter('id', $activity->getId())
-            ->execute();
-    }
 
     public function flush(): void
     {
