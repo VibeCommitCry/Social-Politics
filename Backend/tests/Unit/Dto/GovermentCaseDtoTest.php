@@ -28,6 +28,7 @@ final class GovermentCaseDtoTest extends TestCase
         self::assertSame('Tweede Kamer', $dto->room);
         self::assertTrue($dto->completed);
         self::assertNotNull($dto->date);
+        self::assertNotNull($dto->decisions);
         self::assertContainsOnlyInstancesOf(DecisionDto::class, $dto->decisions);
         self::assertSame(['d-1', 'd-2', 'd-3'], array_map(static fn(DecisionDto $d) => $d->id, $dto->decisions ?? []));
     }

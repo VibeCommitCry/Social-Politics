@@ -17,6 +17,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:decision', description: 'Sync besluit from the last year via OData')]
 final class SyncDecisionCommand extends Command
 {
+    use ReadsIntOptions;
+
     private const DTOCLASS = DecisionDto::class;
     public function __construct(
         private OdataInterface $apiProvider,
@@ -34,10 +36,10 @@ final class SyncDecisionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $max = (int) $input->getOption('max');
+        $max = $this->intOption($input, 'max') ?? 500;
 
         $filter = new DecisionFilter(
-            top: (int) $input->getOption('top'),
+            top: $this->intOption($input, 'top') ?? 250,
             withSkip: true,
         );
 

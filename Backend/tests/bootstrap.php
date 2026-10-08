@@ -23,7 +23,9 @@ function refreshTestDatabase(): void
 {
     echo "\n=== Test database bootstrap ===\n";
 
-    $kernel = new \App\Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
+    /** @var string $environment */
+    $environment = $_SERVER['APP_ENV'];
+    $kernel = new \App\Kernel($environment, (bool) $_SERVER['APP_DEBUG']);
     $kernel->boot();
 
     $application = new Application($kernel);

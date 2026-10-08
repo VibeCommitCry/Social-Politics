@@ -48,7 +48,7 @@ final class ApiProviderTest extends TestCase
 
         $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2, withSkip: true), DecisionDto::class), false);
 
-        self::assertSame(['a', 'b', 'c', 'd', 'e'], array_map(static fn(object $d) => $d instanceof DecisionDto ? $d->id : null, $dtos));
+        self::assertSame(['a', 'b', 'c', 'd', 'e'], array_map(static fn(DecisionDto $d) => $d->id, $dtos));
         self::assertCount(3, $requests);
         self::assertSame(['0', '2', '4'], array_column($requests, '$skip'));
         self::assertSame('/OData/v5/Besluit', $requests[0]['path']);

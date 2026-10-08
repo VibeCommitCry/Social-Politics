@@ -29,8 +29,8 @@ final class GovermentCaseDecisionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         $pivot = new GovermentCaseDecision(
-            $em->getReference(GovermentCase::class, $caseId),
-            $em->getReference(Decision::class, $decisionId),
+            $em->getReference(GovermentCase::class, $caseId) ?? throw new \LogicException('Case reference not found'),
+            $em->getReference(Decision::class, $decisionId) ?? throw new \LogicException('Decision reference not found'),
         );
 
         $em->persist($pivot);

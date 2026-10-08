@@ -27,6 +27,10 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', FractionDto::class, $dto::class));
         }
 
+        if ($dto->id === null) {
+            throw new \InvalidArgumentException('Fraction has no id');
+        }
+
         $fraction = $this->find($dto->id) ?? new Fraction($dto->id);
 
         $fraction->setAbbreviation($dto->abbreviation);
@@ -51,7 +55,7 @@ class FractionRepository extends ServiceEntityRepository implements ImportDtoInt
     }
 
     /**
-     * @return list<array{abbreviation: ?string, nameNl: ?string, nameEn: ?string, seatCount: int}>
+     * @return list<array{abbreviation: ?string, nameNl: ?string, nameEn: ?string, seatCount: ?int}>
      */
     public function findActive(): array
     {

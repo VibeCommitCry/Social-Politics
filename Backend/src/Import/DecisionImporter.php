@@ -31,7 +31,7 @@ final class DecisionImporter implements ImporterInterface
         }
 
         $this->decisionRepository->saveDtoAsEntity($dto);
-        if ($dto->caseId != null) {
+        if ($dto->caseId !== null && $dto->id !== null) {
             $this->caseDecisionRepository->link($dto->caseId, $dto->id);
         }
     }

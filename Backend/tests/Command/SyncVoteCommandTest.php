@@ -12,6 +12,7 @@ use App\Repository\DecisionRepository;
 use App\Tests\Support\DatabaseTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 final class SyncVoteCommandTest extends DatabaseTestCase
 {
@@ -58,7 +59,7 @@ final class SyncVoteCommandTest extends DatabaseTestCase
     }
 
     /**
-     * @param list<mixed>                 $responses
+     * @param list<MockResponse|list<array<string, mixed>>> $responses
      * @param list<array<string, string>> $requests
      */
     private function command(array $responses, array &$requests = []): CommandTester

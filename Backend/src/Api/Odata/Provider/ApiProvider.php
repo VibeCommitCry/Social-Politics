@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Api\Odata\Provider;
 
+use App\Interface\DtoInterface;
 use App\Interface\FilterInterface;
 use App\Interface\OdataInterface;
 use Generator;
@@ -17,12 +18,16 @@ final class ApiProvider implements OdataInterface
     ) {}
 
     /**
-     * @return Generator<object>
+     * @template T of DtoInterface
+     *
+     * @param class-string<T> $dto
+     *
+     * @return Generator<int, T>
      */
     public function search(FilterInterface $filter, string $dto): Generator
     {
         $baseQuery = $filter->toQueryParams();
-        $top = $baseQuery['$top'] ?? 10;
+        $top = (int) ($baseQuery['$top'] ?? 10);
         $skip = 0;
         $paginate = $filter->withSkip();
 
@@ -41,9 +46,17 @@ final class ApiProvider implements OdataInterface
                 throw new \RuntimeException('API request failed', previous: $e);
             }
 
-            $count = count($data['value']);
-            foreach ($data['value'] as $value) {
-                yield $dto::fromArray($value);
+            $values = is_array($data['value'] ?? null) ? $data['value'] : [];
+            $count = count($values);
+            foreach ($values as $value) {
+                if (!is_array($value)) {
+                    continue;
+                }
+
+                /** @var array<string, mixed> $value */
+                /** @var T $item */
+                $item = $dto::fromArray($value);
+                yield $item;
             }
 
             $skip += $top;

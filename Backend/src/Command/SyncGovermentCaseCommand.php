@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:case', description: 'Sync Zaak from the last year via OData')]
 final class SyncGovermentCaseCommand extends Command
 {
+    use ReadsIntOptions;
+
     private const CASECLASS = GovermentCaseDto::class;
     private const DECISIONCLASS = DecisionDto::class;
     public function __construct(
@@ -37,10 +39,10 @@ final class SyncGovermentCaseCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $max = (int) $input->getOption('max');
+        $max = $this->intOption($input, 'max') ?? 500;
 
         $filter = new GovermentCaseFilter(
-            top: (int) $input->getOption('top'),
+            top: $this->intOption($input, 'top') ?? 250,
             room: 'Tweede Kamer',
             expandDecisions: true,
             withSkip: (bool) $input->getOption('skip')
@@ -54,7 +56,7 @@ final class SyncGovermentCaseCommand extends Command
             foreach ($this->apiProvider->search($filter, self::CASECLASS) as $dto) {
                 $caseImporter->import($dto);
 
-                if ($dto->decisions) {
+                if ($dto->decisions !== null) {
                     foreach ($dto->decisions as $decision) {
                         $decision->caseId = $dto->id;
                         $decisionImporter->import($decision);

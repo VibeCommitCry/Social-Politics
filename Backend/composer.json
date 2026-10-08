@@ -76,7 +76,12 @@
         "cs-check": "php-cs-fixer check",
         "cs-fix": "php-cs-fixer fix",
         "stan": "phpstan analyze",
-        "phpunit": "./vendor/bin/phpunit"
+        "phpunit": "./vendor/bin/phpunit",
+        "pr-check": [
+            "@cs-check",
+            "@stan",
+            "@phpunit"
+        ]
     },
     "conflict": {
         "symfony/symfony": "*"

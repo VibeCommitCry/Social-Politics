@@ -33,10 +33,14 @@ class VoteRepository extends ServiceEntityRepository implements ImportDtoInterfa
             throw new \InvalidArgumentException(sprintf('Vote %s has no decision', $dto->id));
         }
 
+        if ($dto->id === null) {
+            throw new \InvalidArgumentException('Vote has no id');
+        }
+
         $em = $this->getEntityManager();
         $vote = $this->find($dto->id) ?? new Vote($dto->id);
 
-        $vote->setDecision($em->getReference(Decision::class, $dto->decisionId));
+        $vote->setDecision($em->getReference(Decision::class, $dto->decisionId) ?? throw new \LogicException('Decision reference not found'));
         $vote->setFraction($this->resolveReference(Fraction::class, $dto->fractionId));
         $vote->setType($dto->type);
         $vote->setFractionSize($dto->fractionSize);

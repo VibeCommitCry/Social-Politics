@@ -11,6 +11,8 @@ use DateTimeImmutable;
 
 final class VoteDto implements DtoInterface
 {
+    use ReadsOdataValues;
+
     public function __construct(
         public readonly ?string $id = null,
         public readonly ?string $decisionId = null,
@@ -29,41 +31,25 @@ final class VoteDto implements DtoInterface
     public static function fromArray(array $data): self
     {
         return new self(
-            id: $data[VoteField::Id->value] ?? null,
-            decisionId: $data[VoteField::DecisionId->value] ?? null,
+            id: self::toString($data[VoteField::Id->value] ?? null),
+            decisionId: self::toString($data[VoteField::DecisionId->value] ?? null),
             type: self::toVoteType($data[VoteField::Type->value] ?? null),
-            fractionSize: $data[VoteField::FractionSize->value] ?? null,
-            actorName: $data[VoteField::ActorName->value] ?? null,
-            actorFraction: $data[VoteField::ActorFraction->value] ?? null,
+            fractionSize: self::toInt($data[VoteField::FractionSize->value] ?? null),
+            actorName: self::toString($data[VoteField::ActorName->value] ?? null),
+            actorFraction: self::toString($data[VoteField::ActorFraction->value] ?? null),
             mistake: self::toBool($data[VoteField::Mistake->value] ?? null),
-            personId: $data[VoteField::PersonId->value] ?? null,
-            fractionId: $data[VoteField::FractionId->value] ?? null,
+            personId: self::toString($data[VoteField::PersonId->value] ?? null),
+            fractionId: self::toString($data[VoteField::FractionId->value] ?? null),
             modifiedOn: self::toDate($data[VoteField::ModifiedOn->value] ?? null),
             apiModifiedOn: self::toDate($data[VoteField::ApiModifiedOn->value] ?? null),
             deleted: self::toBool($data[VoteField::Deleted->value] ?? null),
         );
     }
 
-    private static function toVoteType(?string $value): ?VoteType
+    private static function toVoteType(mixed $value): ?VoteType
     {
-        if ($value === null || $value === '') {
-            return null;
-        }
+        $value = self::toString($value);
 
-        return VoteType::tryFrom($value);
-    }
-
-    private static function toDate(?string $value): ?DateTimeImmutable
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return new DateTimeImmutable($value);
-    }
-
-    private static function toBool(?bool $value): ?bool
-    {
-        return $value === null ? null : (bool) $value;
+        return $value === null || $value === '' ? null : VoteType::tryFrom($value);
     }
 }

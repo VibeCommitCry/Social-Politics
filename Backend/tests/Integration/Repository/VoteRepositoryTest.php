@@ -73,6 +73,7 @@ final class VoteRepositoryTest extends DatabaseTestCase
 
         $vote = $this->em->find(Vote::class, self::VOTE_ID);
 
+        self::assertNotNull($vote);
         self::assertSame(31, $vote->getFractionSize());
         self::assertSame('OldName', $vote->getFractionName());
     }
