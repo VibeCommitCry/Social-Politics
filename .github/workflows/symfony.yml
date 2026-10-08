@@ -53,7 +53,7 @@ jobs:
         run: cp .env.test .env.test.local
 
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Backend/vendor
           key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
@@ -156,7 +156,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Backend/vendor
           key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
