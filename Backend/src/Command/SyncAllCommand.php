@@ -15,6 +15,9 @@ class SyncAllCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $application = $this->getApplication();
+        if ($application === null) {
+            throw new \LogicException('The command must be run inside a console application.');
+        }
 
         $order = [
             'app:sync:fraction',      // pull fractie

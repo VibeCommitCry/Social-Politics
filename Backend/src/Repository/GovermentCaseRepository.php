@@ -28,6 +28,10 @@ class GovermentCaseRepository extends ServiceEntityRepository implements ImportD
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', GovermentCase::class, $dto::class));
         }
 
+        if ($dto->id === null) {
+            throw new \InvalidArgumentException('Case has no id');
+        }
+
         $case = $this->find($dto->id) ?? new GovermentCase($dto->id);
 
         $case->setNumber($dto->number);

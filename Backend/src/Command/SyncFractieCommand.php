@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:fraction', description: 'Sync all Fractie (including dissolved ones) via OData')]
 final class SyncFractieCommand extends Command
 {
+    use ReadsIntOptions;
+
     private const DTOCLASS = FractionDto::class;
     public function __construct(
         private OdataInterface $apiProvider,
@@ -35,13 +37,12 @@ final class SyncFractieCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $maxOption = $input->getOption('max');
-        $max = $maxOption !== null ? (int) $maxOption : PHP_INT_MAX;
+        $max = $this->intOption($input, 'max') ?? PHP_INT_MAX;
 
         // Old votes reference dissolved and nameless fractions, so only deleted ones are skipped.
         // Ordered by Id so $skip pagination is stable.
         $filter = new FractionFilter(
-            top: (int) $input->getOption('top'),
+            top: $this->intOption($input, 'top') ?? 250,
             orderDirection: 'asc',
             orderBy: FractionField::Id,
             includeNamelessFraction: true,

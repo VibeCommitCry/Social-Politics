@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:vote', description: 'Sync Stemming for decisions currently in the database')]
 final class SyncVoteCommand extends Command
 {
+    use ReadsIntOptions;
+
     private const DTOCLASS = VoteDto::class;
     private const BATCH_SIZE = 50;
 
@@ -39,10 +41,9 @@ final class SyncVoteCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $max = (int) $input->getOption('max');
-        $top = (int) $input->getOption('top');
-        $decisionLimitOption = $input->getOption('decision-limit');
-        $decisionLimit = $decisionLimitOption !== null ? (int) $decisionLimitOption : null;
+        $max = $this->intOption($input, 'max') ?? 500;
+        $top = $this->intOption($input, 'top') ?? 250;
+        $decisionLimit = $this->intOption($input, 'decision-limit');
 
         $decisionIds = $this->decisionRepository->findIds($decisionLimit);
 

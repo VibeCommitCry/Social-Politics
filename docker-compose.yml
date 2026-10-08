@@ -46,6 +46,7 @@ services:
             MYSQL_ROOT_PASSWORD: rootsecret
         volumes:
             - db_data:/var/lib/mysql
+            - ./Docker/mysql:/docker-entrypoint-initdb.d:ro
         ports:
             - "3308:3306"
         healthcheck:

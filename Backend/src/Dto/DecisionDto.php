@@ -11,6 +11,8 @@ use DateTimeImmutable;
 
 final class DecisionDto implements DtoInterface
 {
+    use ReadsOdataValues;
+
     public function __construct(
         public readonly ?string $id = null,
         public ?string $caseId = null,
@@ -28,40 +30,24 @@ final class DecisionDto implements DtoInterface
     public static function fromArray(array $data, ?string $caseId = null): self
     {
         return new self(
-            id: $data[DecisionField::Id->value] ?? null,
+            id: self::toString($data[DecisionField::Id->value] ?? null),
             caseId: $caseId,
-            agendaItemId: $data[DecisionField::AgendaItemId->value] ?? null,
-            type: $data[DecisionField::Type->value] ?? null,
-            text: $data[DecisionField::Text->value] ?? null,
-            remark: $data[DecisionField::Remark->value] ?? null,
+            agendaItemId: self::toString($data[DecisionField::AgendaItemId->value] ?? null),
+            type: self::toString($data[DecisionField::Type->value] ?? null),
+            text: self::toString($data[DecisionField::Text->value] ?? null),
+            remark: self::toString($data[DecisionField::Remark->value] ?? null),
             status: self::toStatus($data[DecisionField::Status->value] ?? null),
-            sequence: $data[DecisionField::Sequence->value] ?? null,
+            sequence: self::toInt($data[DecisionField::Sequence->value] ?? null),
             modifiedOn: self::toDate($data[DecisionField::ModifiedOn->value] ?? null),
             apiModifiedOn: self::toDate($data[DecisionField::ApiModifiedOn->value] ?? null),
             deleted: self::toBool($data[DecisionField::Deleted->value] ?? null),
         );
     }
 
-    private static function toStatus(?string $value): ?DecisionStatus
+    private static function toStatus(mixed $value): ?DecisionStatus
     {
-        if ($value === null || $value === '') {
-            return null;
-        }
+        $value = self::toString($value);
 
-        return DecisionStatus::tryFrom($value);
-    }
-
-    private static function toDate(?string $value): ?DateTimeImmutable
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return new DateTimeImmutable($value);
-    }
-
-    private static function toBool(?bool $value): ?bool
-    {
-        return $value === null ? null : (bool) $value;
+        return $value === null || $value === '' ? null : DecisionStatus::tryFrom($value);
     }
 }

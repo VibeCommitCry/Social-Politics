@@ -25,6 +25,10 @@ final class DecisionRepository extends ServiceEntityRepository
         if (!$dto instanceof DecisionDto) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s', DecisionDto::class, $dto::class));
         }
+        if ($dto->id === null || $dto->agendaItemId === null) {
+            throw new \InvalidArgumentException('Decision has no id or agenda item');
+        }
+
         $decision = $this->find($dto->id) ?? new Decision($dto->id);
 
         $decision->setAgendaItemId($dto->agendaItemId);
@@ -61,6 +65,9 @@ final class DecisionRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        return array_column($qb->getQuery()->getScalarResult(), 'id');
+        /** @var list<array{id: string}> $rows */
+        $rows = $qb->getQuery()->getScalarResult();
+
+        return array_column($rows, 'id');
     }
 }
