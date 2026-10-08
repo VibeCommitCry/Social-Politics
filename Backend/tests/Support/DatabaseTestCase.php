@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Support;
 
 use App\Api\Odata\Provider\ApiProvider;
+use App\Import\ActivityImporter;
+use App\Import\AgendaPointImporter;
 use App\Import\DecisionImporter;
 use App\Import\FractionImporter;
 use App\Import\GovermentCaseImporter;
 use App\Import\VoteImporter;
+use App\Repository\ActivityRepository;
+use App\Repository\AgendaPointRepository;
 use App\Repository\DecisionRepository;
 use App\Repository\FractionRepository;
 use App\Repository\GovermentCaseDecisionRepository;
@@ -30,6 +34,7 @@ abstract class DatabaseTestCase extends KernelTestCase
     protected const DECISION_ID = '22222222-2222-4222-8222-222222222222';
     protected const AGENDA_ITEM_ID = '33333333-3333-4333-8333-333333333333';
     protected const CASE_ID = '44444444-4444-4444-8444-444444444444';
+    protected const ACTIVITY_ID = '55555555-5555-4555-8555-555555555555';
 
     protected EntityManagerInterface $em;
 
@@ -97,7 +102,14 @@ abstract class DatabaseTestCase extends KernelTestCase
         $votes = $this->repository(\App\Entity\Vote::class);
         \assert($votes instanceof VoteRepository);
 
+        $activities = $this->repository(\App\Entity\Activity::class);
+        \assert($activities instanceof ActivityRepository);
+        $agendaPoints = $this->repository(\App\Entity\AgendaPoint::class);
+        \assert($agendaPoints instanceof AgendaPointRepository);
+
         return new ImporterService([
+            new ActivityImporter($activities),
+            new AgendaPointImporter($agendaPoints),
             new DecisionImporter($decisions, $caseDecisions),
             new GovermentCaseImporter($cases),
             new FractionImporter($fractions),
