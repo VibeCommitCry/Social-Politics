@@ -7,9 +7,17 @@ on:
 permissions:
   contents: read
 
+env:
+  # Root is required: tests/bootstrap.php drops and creates the politiconnect_test database.
+  DATABASE_URL: mysql://root:rootsecret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
+
 jobs:
   symfony-tests:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
 
     services:
       mysql:
@@ -39,10 +47,112 @@ jobs:
         with:
           php-version: "8.4"
           extensions: ctype, iconv, pdo_mysql
-          coverage: none
+          coverage: pcov
 
       - name: Copy .env.test.local
         run: cp .env.test .env.test.local
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: Backend/vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Security audit
+        run: composer audit --no-interaction
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -prootsecret --silent; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "MySQL did not become ready"
+          exit 1
+
+      # The OData client is a MockHttpClient in every test (see tests/Support/DatabaseTestCase.php),
+      # so CI never reaches the live Tweede Kamer API.
+      - name: Execute tests with coverage
+        run: >-
+          vendor/bin/phpunit
+          --coverage-filter src/Api
+          --coverage-filter src/Command
+          --coverage-filter src/Dto
+          --coverage-filter src/Enum
+          --coverage-filter src/Import
+          --coverage-filter src/Repository
+          --coverage-filter src/Service
+          --coverage-text=coverage.txt
+          --coverage-clover=coverage.xml
+
+      - name: Build coverage summary
+        if: always() && hashFiles('Backend/coverage.txt') != ''
+        run: |
+          {
+            echo "<!-- coverage-report -->"
+            echo "### Test coverage (sync pipeline)"
+            echo '```'
+            sed -n '/^ *Summary:/,/^$/p' coverage.txt
+            echo '```'
+          } > coverage-comment.md
+          cat coverage-comment.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment coverage on PR
+        if: always() && hashFiles('Backend/coverage-comment.md') != '' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('Backend/coverage-comment.md', 'utf8');
+            const marker = '<!-- coverage-report -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+  doctrine-schema:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: politiconnect
+          MYSQL_ROOT_PASSWORD: rootsecret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -prootsecret"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    defaults:
+      run:
+        working-directory: Backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv, pdo_mysql
+          coverage: none
 
       - name: Cache Composer packages
         uses: actions/cache@v4
@@ -67,8 +177,13 @@ jobs:
           echo "MySQL did not become ready"
           exit 1
 
-      - name: Execute tests
-        env:
-          # Root is required: tests/bootstrap.php drops and creates the politiconnect_test database.
-          DATABASE_URL: mysql://root:rootsecret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
-        run: vendor/bin/phpunit
+      - name: Run migrations on an empty database
+        run: php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+
+      - name: Check no migrations are pending
+        run: php bin/console doctrine:migrations:up-to-date --no-interaction
+
+      # After migrating, the live schema must equal the entity mapping. A failure here means an entity
+      # changed without a committed migration (run make:migration) or a migration is wrong.
+      - name: Validate Doctrine schema
+        run: php bin/console doctrine:schema:validate --no-interaction
