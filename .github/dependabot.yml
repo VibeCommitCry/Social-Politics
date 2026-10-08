@@ -1,0 +1,47 @@
+version: 2
+updates:
+  # PHP dependencies (Symfony, Doctrine, PHPUnit, PHPStan, ...)
+  - package-ecosystem: "composer"
+    directory: "/Backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    target-branch: "Development"
+    groups:
+      symfony:
+        patterns:
+          - "symfony/*"
+      doctrine:
+        patterns:
+          - "doctrine/*"
+      dev-tools:
+        dependency-type: "development"
+    labels:
+      - "dependencies"
+
+  # php:8.4-fpm-alpine base image in Backend/dockerfile
+  - package-ecosystem: "docker"
+    directory: "/Backend"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"
+
+  # mysql and nginx images in docker-compose.yml
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"
+
+  # Actions used in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "Development"
+    labels:
+      - "dependencies"

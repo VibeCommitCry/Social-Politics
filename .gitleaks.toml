@@ -1,0 +1,14 @@
+title = "PolitiConnect gitleaks config"
+
+[extend]
+useDefault = true
+
+# Throwaway credentials for the local Docker stack and the CI MySQL service container.
+# They protect nothing outside a developer machine or an ephemeral runner.
+[allowlist]
+description = "Local/CI-only credentials"
+paths = [
+  '''docker-compose\.yml''',
+  '''Backend/\.env\.test''',
+  '''\.github/workflows/.*\.yml''',
+]
