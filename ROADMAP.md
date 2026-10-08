@@ -12,8 +12,8 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started
 
 | Stage | Delivers | Depends on | Status |
 |---|---|---|---|
-| 0 | Reliable sync + clean test setup | — | 🟡 |
-| A | `Decision.votedOn` (real vote date) | 0 | ⬜ |
+| 0 | Reliable sync + clean test setup | — | ✅ |
+| A | `Decision.votedOn` (real vote date) | 0 | 🟡 |
 | 1 | `GET /api/fractions` | A | ⬜ |
 | 1.1 | `GET /api/fractions/{id}/votes` | A | ⬜ |
 | 2 | `GET /api/decisions/{id}` + outcome service | A | ⬜ |
@@ -35,29 +35,29 @@ Order: 0 → A → 1 → 1.1 → 2 → 3. Stage 2 can be built in parallel with 
 
 ---
 
-## Stage 0 — Make the sync trustworthy 🟡
+## Stage 0 — Make the sync trustworthy ✅
 
-**Done in the working tree (not committed yet, branch `Claude-Code-Trial-run`):**
-- [x] `FractionRepository::saveDtoAsEntity()`: removed the `?? false` fallbacks, so nullable fields now get `null`.
+**Done (committed on `Development`):**
+- [x] `FractionRepository::saveDtoAsEntity()`: removed the `?? false` fallbacks, so nullable fields now get `null`. The one exception is `deleted`: `Fraction::$deleted` is a non-nullable bool, so `$dto->deleted ?? false` stays on purpose (a null `Verwijderd` would otherwise be a `TypeError`).
 - [x] `app:sync:fraction` now fetches every fraction, not just the first page:
   - `withSkip: true`, ordered by `Id asc` so paging is stable
   - includes nameless fractions
   - `--max` defaults to unlimited
   - fixed the copy-pasted description and log text
 - [x] `FractionFilter`: removed the unused `includeInactiveFraction`. `FractionField::Endpoint` is now `Fractie`.
-- [x] `Vote.fraction_id`: the entity now uses `onDelete: 'SET NULL'`. The DB is still `CASCADE` (from migration `Version20260927171443`), so this needs a migration.
+- [x] `Vote.fraction_id`: the entity now uses `onDelete: 'SET NULL'`. Migration `Version20261005185506` already sets the FK to `ON DELETE SET NULL`; it only needs to be applied.
 - [x] `tests/bootstrap.php`: no longer copies the dev DB; it only drops, creates and builds the schema. Removed `SOURCE_DATABASE_URL` from `.env.test` and deleted the dead `tests/DocumentProviderTest.php`.
 - [x] `docker-compose.yml`: the password in the backend's `DATABASE_URL` had been replaced with the literal text `[REDACTED]` in commit `e90dedf`. It's back to `secret`, which matches `MYSQL_PASSWORD`.
 
 **Still to do. Run these inside the backend container (`docker compose exec backend sh`):**
-- [ ] `php bin/console make:migration`. The migration should only contain the `vote.fraction_id` FK change to `ON DELETE SET NULL`.
-- [ ] `php bin/console doctrine:migrations:migrate -n`
-- [ ] `php bin/console app:sync:all`. It should run without FK errors.
-- [ ] Spot-check: `vote` rows have non-null `decision_id` and, where expected, `fraction_id`.
-- [ ] Run the tests as root, because `user` can't drop or create `politiconnect_test`:
+- [x] Migration for the `vote.fraction_id` FK change already exists (`Version20261005185506`), so `make:migration` is not needed. Check `doctrine:migrations:status` first.
+- [x] `php bin/console doctrine:migrations:migrate -n`
+- [x] `php bin/console app:sync:all`. It should run without FK errors.
+- [x] Spot-check: `vote` rows have non-null `decision_id` and, where expected, `fraction_id`.
+- [x] Run the tests as root, because `user` can't drop or create `politiconnect_test`:
   `DATABASE_URL="mysql://root:rootsecret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4" php bin/phpunit`
-- [ ] Commit Stage 0.
-- [ ] Optional: `SyncAllCommand` passes its own `$input` to each sub-command, so decisions and votes stay at their 500-record `--max` defaults. Decide whether `sync:all` should sync everything.
+- [x] Commit Stage 0.
+- [x] Optional: `SyncAllCommand` passes its own `$input` to each sub-command, so decisions and votes stay at their 500-record `--max` defaults. Decide whether `sync:all` should sync everything.
 
 **Findings from the live API (checked 2026-10-05):**
 - **Literal quoting:**
@@ -76,7 +76,7 @@ Order: 0 → A → 1 → 1.1 → 2 → 3. Stage 2 can be built in parallel with 
 
 ---
 
-## Stage A — Vote date on Decision ⬜
+## Stage A — Vote date on Decision 🟡
 
 1. **Check the data source first.** The expected path is `Besluit` → `Agendapunt` → `Activiteit.Aanvangstijd` (`$expand=Agendapunt($expand=Activiteit($select=Aanvangstijd))`). Also check whether `Stemming` has a date of its own.
 2. **Store it.** Add `Decision.votedOn` (`datetime_immutable`, nullable, indexed) plus a `DecisionField` entry, and map it in `DecisionDto::fromArray()`.
