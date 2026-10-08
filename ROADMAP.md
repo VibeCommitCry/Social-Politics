@@ -78,19 +78,17 @@ Order: 0 → A → 1 → 1.1 → 2 → 3. Stage 2 can be built in parallel with 
 
 ## Stage A — Vote date on Decision 🟡
 
-Now follows [stage-a-plan.md](stage-a-plan.md) (Decision → AgendaPoint → Activity, vote date = `Activity.Datum` in Europe/Amsterdam). The older list below is superseded.
+Vote date comes from Decision → AgendaPoint → Activity (`Activity.Datum` in Europe/Amsterdam), not from a stored `Decision.votedOn` column.
 
 - [x] Step 1: `Activity` (entity, DTO, `ActivityField`, repository, importer, filter, `app:sync:activity`). Tweede Kamer only. Migration `Version20261008091234`.
 - [x] Step 2: `AgendaPoint` (same set, `app:sync:agendapoint`). Tweede Kamer only through `Activiteit/Kamer eq 'Tweede Kamer'`. `activity_id` is `ON DELETE SET NULL`, and a missing activity saves a null relation. Migration `Version20261008092430`. Both commands are in `app:sync:all`. `--max` stays at 500 (a larger run leaks memory on the dev laptop), so a full backfill takes many runs. `app:sync:agendapoint` and `app:sync:activity` fetch only what the synced decisions need (agenda ids from `decision`, activity ids from `agenda_point.activity_source_id`, migration `Version20261008100354`) and skip ids already stored, so repeated 500-record runs make progress. Importers link in both directions, so the sync order does not matter. `app:sync:all` order: fraction, case, decision, agendapoint, activity, vote.
 - [x] Step 3: `Decision.agendaPoint` (`agenda_point_id`, nullable, `ON DELETE SET NULL`; raw `agendaItemId` stays). Migration `Version20261008094500`. Verified: all 591 synced decisions link to an agenda point.
 - [x] Step 4: `Decision::getVotedOn()` returns the day (Europe/Amsterdam) from `Activity.Datum` through the agenda point, or null when unknown. "Ingediend" decisions are not special-cased: picking the result decision belongs in the query/display layer.
 
-1. **Check the data source first.** The expected path is `Besluit` → `Agendapunt` → `Activiteit.Aanvangstijd` (`$expand=Agendapunt($expand=Activiteit($select=Aanvangstijd))`). Also check whether `Stemming` has a date of its own.
-2. **Store it.** Add `Decision.votedOn` (`datetime_immutable`, nullable, indexed) plus a `DecisionField` entry, and map it in `DecisionDto::fromArray()`.
-3. **Fetch and save it.** `DecisionFilter` gets the `$expand`, and `DecisionRepository::saveDtoAsEntity()` sets `votedOn`.
-4. **Migrate and backfill.** Run `make:migration`, then re-run `app:sync:decision`.
+- [x] Tests: command and repository tests for activity and agendapoint, DTO and filter unit tests, and `tests/Unit/Entity/DecisionTest.php` for `getVotedOn()` (null cases, Amsterdam day, no day shift across time zones).
+- [ ] Verify coverage: run `app:sync:all` until done, then count decisions with votes that have a `getVotedOn()` date.
 
-**Done when:** most decisions that have votes have a `votedOn`.
+**Done when:** most decisions that have votes have a `votedOn`. Stage A turns ✅ once the coverage check above passes.
 
 ## Stage 1 — Fraction list: `GET /api/fractions` ⬜
 
