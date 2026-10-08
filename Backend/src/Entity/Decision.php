@@ -19,6 +19,10 @@ class Decision
     #[ORM\Column(type: 'guid')]
     private string $agendaItemId;
 
+    #[ORM\ManyToOne(targetEntity: AgendaPoint::class)]
+    #[ORM\JoinColumn(name: 'agenda_point_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?AgendaPoint $agendaPoint = null;
+
     #[ORM\Column(nullable: true)]
     private ?string $type = null;
 
@@ -84,6 +88,18 @@ class Decision
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getAgendaPoint(): ?AgendaPoint
+    {
+        return $this->agendaPoint;
+    }
+
+    public function setAgendaPoint(?AgendaPoint $agendaPoint): static
+    {
+        $this->agendaPoint = $agendaPoint;
+
+        return $this;
     }
 
     public function getAgendaItemId(): string
