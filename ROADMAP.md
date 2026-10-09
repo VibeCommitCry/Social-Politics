@@ -76,7 +76,7 @@ Order: 0 → A → 1 → 1.1 → 2 → 3. Stage 2 can be built in parallel with 
 
 ---
 
-## Stage A — Vote date on Decision 🟡
+## Stage A — Vote date on Decision ✅
 
 Vote date comes from Decision → AgendaPoint → Activity (`Activity.Datum` in Europe/Amsterdam), not from a stored `Decision.votedOn` column.
 
@@ -86,7 +86,7 @@ Vote date comes from Decision → AgendaPoint → Activity (`Activity.Datum` in 
 - [x] Step 4: `Decision::getVotedOn()` returns the day (Europe/Amsterdam) from `Activity.Datum` through the agenda point, or null when unknown. "Ingediend" decisions are not special-cased: picking the result decision belongs in the query/display layer.
 
 - [x] Tests: command and repository tests for activity and agendapoint, DTO and filter unit tests, and `tests/Unit/Entity/DecisionTest.php` for `getVotedOn()` (null cases, Amsterdam day, no day shift across time zones).
-- [ ] Verify coverage: run `app:sync:all` until done, then count decisions with votes that have a `getVotedOn()` date.
+- [x] Verify coverage: run `app:sync:all` until done, then count decisions with votes that have a `getVotedOn()` date. Verified 2026-10-09: counts were stable after 2 runs (568 decisions, 184 agenda points, 65 activities, 439 votes), and 18 of 18 decisions with votes have a date (100%). Small sample: the second run added no decisions or votes.
 
 **Done when:** most decisions that have votes have a `votedOn`. Stage A turns ✅ once the coverage check above passes.
 
