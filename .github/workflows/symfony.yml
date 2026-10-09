@@ -40,7 +40,7 @@ jobs:
         working-directory: Backend
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -53,7 +53,7 @@ jobs:
         run: cp .env.test .env.test.local
 
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Backend/vendor
           key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Comment coverage on PR
         if: always() && hashFiles('Backend/coverage-comment.md') != '' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -146,7 +146,7 @@ jobs:
         working-directory: Backend
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -156,7 +156,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Backend/vendor
           key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}

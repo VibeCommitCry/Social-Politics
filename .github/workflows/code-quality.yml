@@ -20,7 +20,7 @@ jobs:
       DATABASE_URL: mysql://root:rootsecret@127.0.0.1:3306/politiconnect?serverVersion=8.0.32&charset=utf8mb4
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -30,7 +30,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Backend/vendor
           key: ${{ runner.os }}-php-${{ hashFiles('Backend/composer.lock') }}
