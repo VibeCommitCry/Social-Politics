@@ -19,6 +19,10 @@ class Decision
     #[ORM\Column(type: 'guid')]
     private string $agendaItemId;
 
+    #[ORM\ManyToOne(targetEntity: AgendaPoint::class)]
+    #[ORM\JoinColumn(name: 'agenda_point_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?AgendaPoint $agendaPoint = null;
+
     #[ORM\Column(nullable: true)]
     private ?string $type = null;
 
@@ -84,6 +88,34 @@ class Decision
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getAgendaPoint(): ?AgendaPoint
+    {
+        return $this->agendaPoint;
+    }
+
+    public function setAgendaPoint(?AgendaPoint $agendaPoint): static
+    {
+        $this->agendaPoint = $agendaPoint;
+
+        return $this;
+    }
+
+    /**
+     * The day this decision was voted on: Activity.Datum reached through the agenda point,
+     * as a date in Europe/Amsterdam. Null when the agenda point, the activity or its date is unknown.
+     */
+    public function getVotedOn(): ?\DateTimeImmutable
+    {
+        $date = $this->agendaPoint?->getActivity()?->getDate();
+
+        if ($date === null) {
+            return null;
+        }
+
+        // The column holds Amsterdam wall-clock time but Doctrine hydrates it in the PHP default time zone.
+        return new \DateTimeImmutable($date->format('Y-m-d'), new \DateTimeZone('Europe/Amsterdam'));
     }
 
     public function getAgendaItemId(): string

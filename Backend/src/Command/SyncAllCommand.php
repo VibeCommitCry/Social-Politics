@@ -23,6 +23,8 @@ class SyncAllCommand extends Command
             'app:sync:fraction',      // pull fractie
             'app:sync:case',      // pulls Zaak + linked Besluit
             'app:sync:decision',  // pulls remaining Besluit not attached to any Zaak
+            'app:sync:agendapoint', // agenda points referenced by the synced decisions
+            'app:sync:activity',  // activities referenced by the synced agenda points (vote dates)
             'app:sync:vote',      // depends on Besluit existing
         ];
 

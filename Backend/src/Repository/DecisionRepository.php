@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Dto\DecisionDto;
+use App\Entity\AgendaPoint;
 use App\Entity\Decision;
 use App\Interface\DtoInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -32,6 +33,8 @@ final class DecisionRepository extends ServiceEntityRepository
         $decision = $this->find($dto->id) ?? new Decision($dto->id);
 
         $decision->setAgendaItemId($dto->agendaItemId);
+        // find(), not getReference(): an agenda point that is not synced (yet) leaves the relation null.
+        $decision->setAgendaPoint($this->getEntityManager()->find(AgendaPoint::class, $dto->agendaItemId));
         $decision->setType($dto->type);
         $decision->setText($dto->text);
         $decision->setRemark($dto->remark);
@@ -50,6 +53,23 @@ final class DecisionRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+    }
+
+    /**
+     * Agenda point ids referenced by synced decisions that are not in the agenda point table yet.
+     *
+     * @return list<string>
+     */
+    public function findMissingAgendaPointIds(): array
+    {
+        /** @var list<array{agendaItemId: string}> $rows */
+        $rows = $this->getEntityManager()->createQuery(
+            'SELECT d.agendaItemId FROM ' . Decision::class . ' d'
+            . ' WHERE NOT EXISTS (SELECT 1 FROM ' . AgendaPoint::class . ' a WHERE a.id = d.agendaItemId)'
+            . ' GROUP BY d.agendaItemId ORDER BY MAX(d.modifiedOn) DESC'
+        )->getScalarResult();
+
+        return array_column($rows, 'agendaItemId');
     }
 
     /**
