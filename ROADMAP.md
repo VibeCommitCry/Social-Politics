@@ -1,144 +1,300 @@
-# PolitiConnect — First-release roadmap
+# PolitiConnect: API endpoints roadmap
 
-Working plan for `Project-handover.md` §8. Each stage is built, tested and merged on its own.
-**Scope:** backend JSON API only. The frontend gets planned separately later.
+This replaces the earlier roadmap. Its stages 0 and A are finished and merged in `b25af27`:
+- the sync
+- `Activity`/`AgendaPoint`
+- `Decision::getVotedOn()`
 
-**Decisions:**
-- "Newest first" uses a **real vote date** synced from the API, not `modifiedOn`.
-- Each feed item shows **outcome + tally**. The full per-fraction breakdown lives only on the decision detail page.
-- Handover §6 decisions still apply, **except #6.** On GUID fields, quotes cause a type error (see Stage 0 findings).
+**Scope:** 4 JSON endpoints in `Backend/`. Search and the frontend come later.
 
-Status legend: ✅ done · 🟡 in progress · ⬜ not started
+Status legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 | Stage | Delivers | Depends on | Status |
 |---|---|---|---|
-| 0 | Reliable sync + clean test setup | — | ✅ |
-| A | `Decision.votedOn` (real vote date) | 0 | 🟡 |
-| 1 | `GET /api/fractions` | A | ⬜ |
-| 1.1 | `GET /api/fractions/{id}/votes` | A | ⬜ |
-| 2 | `GET /api/decisions/{id}` + outcome service | A | ⬜ |
-| 3 | `GET /api/decisions/recent` | 2 | ⬜ |
-| 4 | Search | — | Deferred for v1 |
+| 0 | Housekeeping | — | [x] |
+| 1 | Foundations: response DTOs, `PageRequest`/`Page`, `ApiTestCase` | 0 | [ ] |
+| 2 | `DecisionOutcome` + `Tally` + `TallyCalculator` + `DecisionOutcomeService` | 1 | [ ] |
+| 3 | `GET /api/fractions`, `GET /api/fractions/{id}` | 1 | [ ] |
+| 4 | `GET /api/decisions/{id}` | 2 | [ ] |
+| 5 | `GET /api/decisions?page&limit` | 2, 4 | [ ] |
 
-Order: 0 → A → 1 → 1.1 → 2 → 3. Stage 2 can be built in parallel with 1/1.1 once A is done.
+Stage 3 can be built in parallel with Stage 2.
 
----
-
-## Conventions for all API stages
-
-- **Routes:** under `/api/...`, using `#[Route]` attributes on `final` controllers in `src/Controller/`.
-- **Layering:** controller → service (`src/Service/`) → repository query methods. Controllers stay thin. Queries live in the repositories, next to `findActive()` and `findIds()`.
-- **Response shapes:** readonly classes in `src/Dto/Response/`. These are separate from the import DTOs that implement `DtoInterface`, and are returned with `$this->json()`.
-- **Pagination:** `?page=1&limit=20`, with `limit` capped at 100. Uses Doctrine's `Paginator`. Responses look like `{ items, page, limit, total }`, built by one shared helper (`src/Service/Pagination.php`).
-- **Not found:** an unknown ID returns 404 JSON.
-- **Tests:** WebTestCases that seed their own entities through the EntityManager. The test DB starts empty, and a shared helper goes in `tests/Factory/` once it's first needed.
+**No schema migration is needed.** Every stage only reads columns that already exist. Confirm with `doctrine:schema:validate`.
 
 ---
 
-## Stage 0 — Make the sync trustworthy ✅
+## Conventions
 
-**Done (committed on `Development`):**
-- [x] `FractionRepository::saveDtoAsEntity()`: removed the `?? false` fallbacks, so nullable fields now get `null`. The one exception is `deleted`: `Fraction::$deleted` is a non-nullable bool, so `$dto->deleted ?? false` stays on purpose (a null `Verwijderd` would otherwise be a `TypeError`).
-- [x] `app:sync:fraction` now fetches every fraction, not just the first page:
-  - `withSkip: true`, ordered by `Id asc` so paging is stable
-  - includes nameless fractions
-  - `--max` defaults to unlimited
-  - fixed the copy-pasted description and log text
-- [x] `FractionFilter`: removed the unused `includeInactiveFraction`. `FractionField::Endpoint` is now `Fractie`.
-- [x] `Vote.fraction_id`: the entity now uses `onDelete: 'SET NULL'`. Migration `Version20261005185506` already sets the FK to `ON DELETE SET NULL`; it only needs to be applied.
-- [x] `tests/bootstrap.php`: no longer copies the dev DB; it only drops, creates and builds the schema. Removed `SOURCE_DATABASE_URL` from `.env.test` and deleted the dead `tests/DocumentProviderTest.php`.
-- [x] `docker-compose.yml`: the password in the backend's `DATABASE_URL` had been replaced with the literal text `[REDACTED]` in commit `e90dedf`. It's back to `secret`, which matches `MYSQL_PASSWORD`.
+**Layering**
+- `final` controllers with `#[Route]` → service in `src/Service/` → repository query methods.
+- Controllers only parse input and turn `null` into a 404.
 
-**Still to do. Run these inside the backend container (`docker compose exec backend sh`):**
-- [x] Migration for the `vote.fraction_id` FK change already exists (`Version20261005185506`), so `make:migration` is not needed. Check `doctrine:migrations:status` first.
-- [x] `php bin/console doctrine:migrations:migrate -n`
-- [x] `php bin/console app:sync:all`. It should run without FK errors.
-- [x] Spot-check: `vote` rows have non-null `decision_id` and, where expected, `fraction_id`.
-- [x] Run the tests as root, because `user` can't drop or create `politiconnect_test`:
-  `DATABASE_URL="mysql://root:rootsecret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4" php bin/phpunit`
-- [x] Commit Stage 0.
-- [x] Optional: `SyncAllCommand` passes its own `$input` to each sub-command, so decisions and votes stay at their 500-record `--max` defaults. Decide whether `sync:all` should sync everything.
+**Responses**
+- Response classes are `final readonly` in `src/Dto/Response/`, with public promoted properties, returned via `$this->json()`.
+- `symfony/serializer` is not installed, so `json()` uses `json_encode`. That means:
+  - Format dates as `'Y-m-d'` strings yourself. Never return a `DateTimeImmutable`.
+  - Backed enums encode to their value.
 
-**Findings from the live API (checked 2026-10-05):**
-- **Literal quoting:**
-  - `Edm.Guid` fields must **not** be quoted. `Besluit_Id eq 'guid'` returns a type error, while `Besluit_Id eq guid` works.
-  - `in (...)` accepts both forms.
-  - `Edm.String` fields (`Afkorting`) do need quotes.
-  - So `VoteFilter` and `DecisionFilter` were already correct.
-- **Fractions:**
-  - 60 fractions that aren't deleted, of which 43 are dissolved (`DatumInactief` is set).
-  - None of them is nameless.
-  - Seat counts are null or 0 for dissolved fractions.
-- **No Eerste Kamer fractions:** the Senate-only party OSF isn't returned.
-- **`Besluit.Status` values:** `Besluit` (664k), `Voorstel` (6.5k), `Concept voorstel` (26), `Nog te verwerken besluit` (18), and about 68k null. All four are in the `DecisionStatus` enum.
-- **`BesluitTekst` for decisions that have votes** is exactly `Aangenomen.` (passed) or `Verworpen.` (rejected). Stage 2 derives the outcome from this.
-- **Still unchecked:** whether `Fractie.Id` stays the same after a party rename.
+**Errors**
+- Errors are always JSON: `{"error": "<message>"}`, returned with `$this->json([...], 404|400)`.
+- Don't throw HTTP exceptions. They render as HTML.
+
+**Pagination**
+- Defaults: `page=1`, `limit=20`.
+- Malformed input (non-integer, `page < 1`, `limit < 1`) returns **400**.
+- A `limit` above 100 is **clamped** to 100. The response echoes the effective `limit`.
+- Response shape: `{ items, page, limit, total }`.
+
+**Nullable flags and filters**
+- `Vote.mistake`, `Vote.deleted` and `Decision.deleted` are nullable. Filter them with `COALESCE(x, false) = false`.
+- Counted vote: not a mistake, not deleted, and `type IS NOT NULL`.
+- Active fraction: `!deleted && (activeUntil === null || activeUntil >= now)`.
+
+**Existing conventions to keep**
+- Keep the `Goverment` spelling.
+- The `Vote.fractionName` and `Vote.fractionSize` snapshots are what the API returns.
 
 ---
 
-## Stage A — Vote date on Decision ✅
-
-Vote date comes from Decision → AgendaPoint → Activity (`Activity.Datum` in Europe/Amsterdam), not from a stored `Decision.votedOn` column.
-
-- [x] Step 1: `Activity` (entity, DTO, `ActivityField`, repository, importer, filter, `app:sync:activity`). Tweede Kamer only. Migration `Version20261008091234`.
-- [x] Step 2: `AgendaPoint` (same set, `app:sync:agendapoint`). Tweede Kamer only through `Activiteit/Kamer eq 'Tweede Kamer'`. `activity_id` is `ON DELETE SET NULL`, and a missing activity saves a null relation. Migration `Version20261008092430`. Both commands are in `app:sync:all`. `--max` stays at 500 (a larger run leaks memory on the dev laptop), so a full backfill takes many runs. `app:sync:agendapoint` and `app:sync:activity` fetch only what the synced decisions need (agenda ids from `decision`, activity ids from `agenda_point.activity_source_id`, migration `Version20261008100354`) and skip ids already stored, so repeated 500-record runs make progress. Importers link in both directions, so the sync order does not matter. `app:sync:all` order: fraction, case, decision, agendapoint, activity, vote.
-- [x] Step 3: `Decision.agendaPoint` (`agenda_point_id`, nullable, `ON DELETE SET NULL`; raw `agendaItemId` stays). Migration `Version20261008094500`. Verified: all 591 synced decisions link to an agenda point.
-- [x] Step 4: `Decision::getVotedOn()` returns the day (Europe/Amsterdam) from `Activity.Datum` through the agenda point, or null when unknown. "Ingediend" decisions are not special-cased: picking the result decision belongs in the query/display layer.
-
-- [x] Tests: command and repository tests for activity and agendapoint, DTO and filter unit tests, and `tests/Unit/Entity/DecisionTest.php` for `getVotedOn()` (null cases, Amsterdam day, no day shift across time zones).
-- [x] Verify coverage: run `app:sync:all` until done, then count decisions with votes that have a `getVotedOn()` date. Verified 2026-10-09: counts were stable after 2 runs (568 decisions, 184 agenda points, 65 activities, 439 votes), and 18 of 18 decisions with votes have a date (100%). Small sample: the second run added no decisions or votes.
-
-**Done when:** most decisions that have votes have a `votedOn`. Stage A turns ✅ once the coverage check above passes.
-
-## Stage 1 — Fraction list: `GET /api/fractions` ⬜
-
-Returns the active fractions with their seats, ordered by seat count descending. Each fraction carries its 3 most recent votes, and each vote links to its decision.
-
-- **Repository:** reuse `FractionRepository::findActive()`, but include `id`. It currently selects scalars without `id`.
-- **Service:** replace the stub `FractionService::getFractionsWithSeats()`.
-- **Recent votes:** add `VoteRepository::findRecentByFraction(array $fractionIds, int $perFraction)`. One query, ordered by `decision.votedOn`, fraction-level votes only (`personId IS NULL`).
-- **Response:** `FractionSummary { id, abbreviation, name, seatCount, recentVotes: [{decisionId, type, votedOn}] }`.
-- **Controller:** rewrite the stub `FractionController` (currently `GET /fraction`) and update `tests/Controller/FractionControllerTest.php`.
-
-## Stage 1.1 — Party votes: `GET /api/fractions/{id}/votes?page&limit` ⬜
-
-- **Contents:** all votes for one fraction, newest first by `decision.votedOn`.
-- **Not filtered to case-linked decisions** (handover decision #2).
-- **Repository:** add `VoteRepository::findPageByFraction(string $fractionId, int $page, int $limit)`, joined to the decision.
-- **Each item:** `{ voteType, fractionSizeAtVote, fractionNameAtVote, decision: {id, textExcerpt, votedOn, outcome} }`. The size and name come from the `Vote` snapshot columns (handover decision #3).
-- **404** if the fraction doesn't exist.
-
-## Stage 2 — Decision detail: `GET /api/decisions/{id}` ⬜
-
-Returns the text, status, outcome, `votedOn`, linked case(s), tally and per-fraction breakdown.
-
-- **`DecisionOutcomeService` + `DecisionOutcome` enum (`Passed`, `Rejected`, `Unknown`):**
-  - Takes the outcome from the `BesluitTekst` prefix (`Aangenomen` or `Verworpen`).
-  - If there is no prefix, compares the seat tally.
-  - Stages 1.1 and 3 reuse this service.
-- **Tally:**
-  - Fraction votes: sum `fractionSize` per `VoteType`.
-  - Individual (hoofdelijke) votes, i.e. those with `personId` set: count 1 each.
-  - Skip votes where `mistake` or `deleted` is true.
-- **Breakdown:** one row per fraction vote, `{fractionId, fractionName (snapshot), fractionSize (snapshot), type}`.
-- **Linked cases:** found through the `GovermentCaseDecision` pivot, returned as `{id, number, title}`.
-
-## Stage 3 — Recent-votes timeline: `GET /api/decisions/recent?page&limit` ⬜
-
-- **Contents:** only case-linked decisions that have at least one vote, newest first by `votedOn`.
-- **Query:** `DecisionRepository::findRecentVotedCaseLinked(page, limit)`. It filters with `EXISTS` on `goverment_case_decision` and `EXISTS` on vote, and excludes deleted decisions.
-- **Tallies:** computed in one grouped query per page (`GROUP BY decision_id, type`) to avoid N+1 queries, then passed to `DecisionOutcomeService`.
-- **Each item:** `{ id, caseTitle, textExcerpt, votedOn, outcome, tally: {for, against, abstain} }`.
-
-## Stage 4 — Search
-
-Deferred for v1.
+## Stage 0: Housekeeping [x]
+- [x] Replace the whole of `ROADMAP.md` with this document. The old notes stay in git history.
+- [x] Add a banner at the top of `Project-handover.md`: "Stale since 2026-10-09. ROADMAP.md and CLAUDE.md are authoritative." The reasons:
+  - its status rows are out of date
+  - its Decision #6 on GUID quoting is wrong
+  - its endpoint list has been replaced
 
 ---
 
-## Verification checklist (every stage)
+## Stage 1: Foundations [ ]
 
-1. **Schema:** `php bin/console doctrine:schema:validate`, and `make:migration` shows no unexpected diff.
-2. **Sync** (stages 0 and A): `php bin/console app:sync:all`, then spot-check row counts and null FKs.
-3. **Tests:** `php bin/phpunit tests/Controller/<Name>ControllerTest.php`. Cover the happy path, 404, pagination bounds and outcome derivation.
-4. **Manual:** `curl http://localhost:8080/api/...` against real synced data.
+**Files**
+- `src/Http/PageRequest.php`: `final readonly`, with `DEFAULT_LIMIT = 20` and `MAX_LIMIT = 100`.
+  - `fromQuery(InputBag): self` validates with `FILTER_VALIDATE_INT` and clamps `limit`.
+  - `offset(): int`.
+- `src/Http/InvalidPageRequest.php`: extends `\InvalidArgumentException`.
+- `src/Dto/Response/Page.php`: the generic wrapper `{items, page, limit, total}`.
+- `tests/Support/ResetsDatabase.php`: a trait holding the truncate logic, moved out of `tests/Support/DatabaseTestCase.php`. `DatabaseTestCase` now uses the trait.
+- `tests/Support/ApiTestCase.php`: abstract, extends `WebTestCase`, uses `ResetsDatabase`.
+  - Why it's needed: `createClient()` refuses an already-booted kernel, so `DatabaseTestCase` can't be reused.
+  - `setUp()`: create the client, get the EM from the container, then truncate.
+  - Constants: the existing ID constants, plus `FRACTION_ID_2` and `DECISION_ID_2`.
+  - Helpers, which go through `saveDtoAsEntity(new XDto(...))` and `GovermentCaseDecisionRepository::link()`:
+    - `seedFraction(...)`
+    - `seedVotedDecision(id, text, datetime, ?caseId)`, which creates activity → agenda point → decision → case link. Seed in that order: `DecisionRepository` resolves the agenda point with `find()`.
+    - `seedVote(...)`
+    - `getJson(uri): array`
+
+**Tests:** `tests/Unit/Http/PageRequestTest.php`
+- Defaults.
+- `limit` is clamped to the cap.
+- `0`, `-1`, `abc` and `1.5` each throw.
+- `offset()` returns the right value.
+
+**Done when:** the full suite is green, including the existing `DatabaseTestCase` tests.
+
+---
+
+## Stage 2: Outcome and tally [ ]
+
+**Files**
+- `src/Enum/DecisionOutcome.php`: `Passed='passed'`, `Failed='failed'`, `Unknown='unknown'`.
+- `src/Dto/Response/Tally.php`: `for`, `against`, `abstain` (all int), and `isEmpty()`.
+- `src/Service/TallyCalculator.php`:
+  - `fromGroupedRows(array $rows): array<string, Tally>`, keyed by decision id.
+  - `fromVotes(iterable<Vote>): Tally`.
+  - Counting rule: a fraction vote (`personId === null`) adds `fractionSize ?? 0`. An individual vote adds 1.
+- `src/Service/DecisionOutcomeService.php`: `outcomeFor(?string $text, Tally): DecisionOutcome`.
+  1. If the trimmed text starts with `Aangenomen` (case-insensitive), return Passed. If it starts with `Verworpen`, return Failed.
+  2. Otherwise, an empty tally returns Unknown.
+  3. Otherwise, `for > against` returns Passed. Anything else, including a tie, returns Failed.
+
+**Tests**
+- `tests/Unit/Service/DecisionOutcomeServiceTest.php`:
+  - The text wins even when the tally contradicts it.
+  - Whitespace and casing don't matter.
+  - The tally fallback cases: for > against, against > for, a tie, and an empty tally.
+- `tests/Unit/Service/TallyCalculatorTest.php`:
+  - fraction votes
+  - individual votes
+  - a mix of both
+  - a null size
+  - multiple decisions
+  - `fromVotes` and `fromGroupedRows` give the same result
+
+**Done when:** both unit tests are green, with no DB.
+
+---
+
+## Stage 3: Fraction endpoints [ ]
+
+**Files**
+- `src/Repository/FractionRepository.php`, `findActive()`:
+  - add `f.id` to the select
+  - add `f.seatCount > 0`, because dissolved fractions have 0 seats, not null
+  - update the phpdoc
+- `src/Service/FractionService.php` (make it `final`). This replaces the stub `getFractionsWithSeats()`.
+  - `getActiveFractions(): list<FractionSummary>`.
+  - `getFraction(string $id): ?FractionDetail`. It returns `null` if the fraction is missing or `deleted`. Dissolved fractions are returned with `active: false`, because old votes link to them.
+- `src/Dto/Response/FractionSummary.php`: `id`, `abbreviation`, `nameNl`, `nameEn`, `seatCount`.
+- `src/Dto/Response/FractionDetail.php`: the summary fields plus `activeFrom`, `activeUntil` (as `Y-m-d`) and `active`. This is the per-fraction space; future detail gets added here.
+- `src/Controller/FractionController.php`: rewrite the maker stub (`/fraction`).
+  - `GET /api/fractions` (`api_fraction_list`) returns `{"items":[...]}`.
+  - `GET /api/fractions/{id}` (`api_fraction_show`) returns the detail, or 404 `{"error":"Fraction not found"}`.
+- `tests/Controller/FractionControllerTest.php`: rewrite it on top of `ApiTestCase`.
+
+**Response shapes**
+```json
+GET /api/fractions
+{"items":[{"id":"…","abbreviation":"PVV","nameNl":"Partij voor de Vrijheid","nameEn":"Party for Freedom","seatCount":37}]}
+
+GET /api/fractions/{id}
+{"id":"…","abbreviation":"PvdA","nameNl":"…","nameEn":"…","seatCount":0,"activeFrom":"1946-02-09","activeUntil":"2025-06-10","active":false}
+```
+
+**Tests**
+- The list:
+  - is sorted by seats, descending
+  - excludes dissolved, deleted, and null-seat or 0-seat fractions
+  - includes a fraction whose `activeUntil` is in the future
+- Show:
+  - an active fraction returns `active: true`
+  - a dissolved fraction returns 200 with `active: false`
+  - an unknown or deleted fraction returns a 404 JSON body
+- The old `/fraction` route returns 404.
+
+**Done when:**
+- the tests are green
+- `debug:router` shows both routes
+- curl returns the current Kamer
+
+---
+
+## Stage 4: Decision detail [ ]
+
+**Files**
+- `src/Repository/DecisionRepository.php`: `findOneWithVotedOn(string $id): ?Decision`.
+  - Left join-fetch `agendaPoint` and `agendaPoint.activity`, so `getVotedOn()` doesn't trigger lazy loads.
+  - Exclude deleted decisions.
+- `src/Repository/VoteRepository.php`: `findCountedByDecision(string $decisionId): list<Vote>`. Only counted votes, ordered by `fractionSize DESC, fractionName ASC`.
+- `src/Repository/GovermentCaseDecisionRepository.php`: `findCasesForDecisions(list<string> $ids)`.
+  - Returns `{decisionId, id, number, title}` rows.
+  - Excludes deleted cases and orders by `gc.number`.
+  - Stage 5 reuses it.
+- `src/Service/DecisionService.php` (new, `final`): `getDecision(string $id): ?DecisionDetail`.
+  - The tally comes from `TallyCalculator::fromVotes()`.
+  - The outcome comes from `DecisionOutcomeService`.
+  - The breakdown is built from the votes where `personId === null`.
+- `src/Dto/Response/`:
+  - `DecisionDetail`: `id`, `text`, `status`, `votedOn`, `outcome`, `cases`, `tally`, `breakdown`
+  - `CaseRef`: `id`, `number`, `title`
+  - `FractionVote`: `fractionId`, `fractionName`, `fractionSize`, `voteType`
+- `src/Controller/DecisionController.php` (new, `final`): `GET /api/decisions/{id}` (`api_decision_show`).
+
+**Response shape**
+```json
+{"id":"…","text":"Aangenomen.","status":"Besluit","votedOn":"2026-10-07","outcome":"passed",
+ "cases":[{"id":"…","number":"36600-XV-12","title":"Motie van het lid …"}],
+ "tally":{"for":88,"against":62,"abstain":0},
+ "breakdown":[{"fractionId":"…","fractionName":"PVV","fractionSize":37,"voteType":"Voor"}]}
+```
+
+**Behaviour**
+- A decision without a case or without votes still returns 200, with:
+  - empty `cases` and `breakdown`
+  - a zero tally
+  - the outcome taken from the text
+- Individual (hoofdelijke) votes count in the tally, but they are not part of the breakdown yet. Grouping them per fraction is deferred.
+
+**Tests:** `tests/Controller/DecisionControllerTest.php`
+- The happy path asserts every field, including `votedOn` as the Amsterdam day.
+- The breakdown uses the snapshot name and size, even after the `Fraction` row is renamed.
+- Mistake and deleted votes are excluded.
+- An individual-vote decision counts 1 per person.
+- With no outcome text, the outcome falls back to the tally.
+- A decision with no votes and no case returns 200 with an `unknown` outcome.
+- Multiple cases come back ordered by number.
+- Unknown and deleted decisions return 404.
+
+**Done when:** the tests are green, and curl on a real id matches the Tweede Kamer website.
+
+---
+
+## Stage 5: Decisions feed [ ]
+
+**Files**
+- `src/Repository/DecisionRepository.php`: `countFeed(): int` and `findFeedRows(int $offset, int $limit)`.
+  - Both share a private `feedQueryBuilder()` with three conditions:
+    - the decision is not deleted
+    - `EXISTS` a counted vote
+    - `EXISTS` a pivot row whose case is not deleted
+  - `findFeedRows`:
+    - Left-joins `agendaPoint → activity` and orders by `act.date DESC, d.id DESC`. A null date ends up last; a test covers this.
+    - Selects the scalars `d.id`, `d.text` and `act.date`, with `setFirstResult` and `setMaxResults`. No `Paginator` needed.
+- Extract the Amsterdam-day logic from `Decision::getVotedOn()` into a static helper, `Decision::votedOnFromActivityDate(?\DateTimeImmutable)`, so the detail and the feed share it.
+- `src/Repository/VoteRepository.php`: `findTallyRows(list<string> $ids)`.
+  - One grouped query `GROUP BY decision, type, (personId IS NULL)` returning `SUM(COALESCE(fractionSize, 0))` and `COUNT(id)`.
+  - Use native SQL if DQL rejects the grouping, and leave a comment saying why.
+- `src/Service/DecisionService.php`: `getFeed(PageRequest): Page`.
+  - Exactly **4 queries**: count, rows, tally, cases.
+  - `caseTitle` is the title of the first case by number.
+  - `excerpt` is `mb_strimwidth(trim(text), 0, 200, '…')`.
+- `src/Dto/Response/DecisionFeedItem.php`: `id`, `caseTitle`, `excerpt`, `votedOn`, `outcome`, `tally`.
+- `src/Controller/DecisionController.php`: add `GET /api/decisions` (`api_decision_feed`). It catches `InvalidPageRequest` and returns 400.
+
+**Response shape**
+```json
+GET /api/decisions?page=2&limit=20
+{"items":[{"id":"…","caseTitle":"Motie van het lid … over …","excerpt":"Verworpen.","votedOn":"2026-10-07",
+           "outcome":"failed","tally":{"for":61,"against":89,"abstain":0}}],
+ "page":2,"limit":20,"total":18}
+```
+
+**Tests:** `tests/Controller/DecisionFeedControllerTest.php`
+- **Scope:** the feed excludes:
+  - decisions without votes
+  - decisions with only deleted or mistake votes
+  - decisions with no case link
+  - decisions whose only case is deleted
+  - deleted decisions
+- **Order:** newest first, a null date last, and a tie broken by id descending.
+- **Pagination:**
+  - `total` is correct
+  - page 2 has the right items
+  - a page past the end returns empty `items`
+  - `limit=500` gives a response with `limit: 100`
+  - `limit=0`, `page=abc` and `page=0` each return 400 JSON
+- **Content:**
+  - the tally and outcome match the detail endpoint
+  - `caseTitle` comes from the lowest case number
+- **No N+1:** the query count for a 5-item page is at most 4. Use the profiler's `db` collector if it's available in test. If it isn't, use a middleware counter, or drop the check and note why.
+
+**Done when:** the tests are green, and curl `/api/decisions?limit=5` on synced data returns the newest votes, with outcomes matching their text.
+
+---
+
+## Verification (every stage)
+
+Run these inside the container: `docker compose exec backend sh`. PHPUnit runs as **root**, because `user` can't drop or create the test DB.
+```sh
+php bin/console doctrine:schema:validate
+php bin/console debug:router | grep api_
+DATABASE_URL="mysql://root:rootsecret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4" php bin/phpunit
+vendor/bin/phpstan analyse
+```
+PHPUnit fails on any deprecation, notice or warning.
+
+Manual checks after `app:sync:all`:
+```sh
+curl -s localhost:8080/api/fractions | jq
+curl -s localhost:8080/api/fractions/<id> | jq
+curl -si localhost:8080/api/fractions/00000000-0000-0000-0000-000000000000   # 404 JSON
+curl -s 'localhost:8080/api/decisions?page=1&limit=5' | jq
+curl -si 'localhost:8080/api/decisions?limit=abc'                            # 400 JSON
+curl -s localhost:8080/api/decisions/<id> | jq
+```
+
+## Later (not in this roadmap)
+- `GET /api/fractions/{id}/votes`: per-fraction vote history, built on `FractionDetail`.
+- Grouping individual votes per fraction in the breakdown.
+- Search (deferred for v1).

@@ -1,5 +1,7 @@
 # PolitiConnect — Project Handoff
 
+> **Stale since 2026-10-09.** ROADMAP.md and CLAUDE.md are authoritative. The status rows here are out of date, Decision #6 (GUID quoting) is wrong, and the endpoint list has been replaced by ROADMAP.md.
+
 Status snapshot as of tonight's session. Written for a coding agent picking this up fresh.
 
 > **Tip:** if you want Claude Code to auto-load this as project context on every session, rename this file to `CLAUDE.md` (or `.claude/CLAUDE.md`) in the repo root — Claude Code reads that filename automatically at launch.
