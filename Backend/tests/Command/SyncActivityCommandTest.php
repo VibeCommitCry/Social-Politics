@@ -138,7 +138,9 @@ final class SyncActivityCommandTest extends DatabaseTestCase
         ));
         foreach ($requests as $query) {
             self::assertStringContainsString('Id in (', $query['$filter']);
-            self::assertStringNotContainsString("'", substr($query['$filter'], strpos($query['$filter'], 'Id in (')));
+            $idsStart = strpos($query['$filter'], 'Id in (');
+            self::assertNotFalse($idsStart);
+            self::assertStringNotContainsString("'", substr($query['$filter'], $idsStart));
         }
     }
 

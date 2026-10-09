@@ -90,7 +90,8 @@ final class AgendaPointRepositoryTest extends DatabaseTestCase
 
         $agendaPoint = $this->em->find(AgendaPoint::class, self::AGENDA_ITEM_ID);
 
-        self::assertNull($agendaPoint?->getActivity());
+        self::assertNotNull($agendaPoint);
+        self::assertNull($agendaPoint->getActivity());
         self::assertSame(self::ACTIVITY_ID, $agendaPoint->getActivitySourceId());
     }
 
