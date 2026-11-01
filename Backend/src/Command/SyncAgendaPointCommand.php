@@ -42,7 +42,6 @@ final class SyncAgendaPointCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        dd($this->activityRepository->findIdsToCheck());
         $max = $this->intOption($input, 'max') ?? 500;
 
         $top = $this->intOption($input, 'top') ?? 250;
