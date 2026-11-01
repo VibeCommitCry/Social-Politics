@@ -12,6 +12,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:sync:all', description: 'Run all syncs in dependency order')]
 class SyncAllCommand extends Command
 {
+    public function __construct(
+        private readonly string $syncSince,
+        private readonly int $recheck,
+    ) {
+        parent::__construct();
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $application = $this->getApplication();

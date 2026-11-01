@@ -3,7 +3,6 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
-            string $governmentApiSyncfeedUrl: '%env(GOVERMENT_API_SYNCFEED_URL)%'
             string $governmentApiOdataUrl: '%env(GOVERMENT_API_ODATA_URL)%'
 
     App\:
@@ -15,10 +14,10 @@ services:
 
     App\Interface\OdataInterface: '@App\Api\Odata\Provider\ApiProvider'
 
-    App\Api\SyncFeed\Provider\XmlProvider:
-        arguments:
-            $governmentApiSyncFeedUrl: '@goverment_syncfeed_api.client'
 
-    App\Interface\SyncFeedInterface: '@App\Api\SyncFeed\Provider\XmlProvider'
-
+    App\Command\:
+        resource: '../src/Command'
+        bind:
+            string $syncSince: '%env(SYNC_SINCE)%'
+            int $recheck: '%env(int:SYNC_RECHECK_DAYS)%'
     

@@ -18,17 +18,10 @@ final class DecisionFilter implements FilterInterface
 
     public function buildConditions(): array
     {
-        $conditions = [];
-
-        if (!$this->includeDeleted) {
-            $conditions[] = 'Verwijderd eq false';
-        }
-
-        if ($this->agendaItemId !== null) {
-            $conditions[] = sprintf("Agendapunt_Id eq %s", $this->agendaItemId);
-        }
-
-        return $conditions;
+        return new ODataConditions()
+            ->equalsBool(DecisionField::Deleted, $this->includeDeleted ? null : false)
+            ->equalsGuid(DecisionField::AgendaItemId, $this->agendaItemId)
+            ->build();
     }
 
     public function toQueryParams(): array

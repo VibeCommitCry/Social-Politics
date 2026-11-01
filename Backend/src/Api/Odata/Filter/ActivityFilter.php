@@ -16,7 +16,9 @@ final class ActivityFilter implements FilterInterface
         public readonly ?string $room = null,
         /** @var string[] */
         private readonly array $ids = [],
-    ) {}
+        private readonly ?\DateTimeImmutable $since = null,
+    ) {
+    }
 
     public function endpoint(): string
     {
@@ -41,25 +43,12 @@ final class ActivityFilter implements FilterInterface
 
     public function buildConditions(): array
     {
-        $conditions = [];
-
-        if (!$this->includeDeleted) {
-            $conditions[] = ActivityField::Deleted->value . ' eq false';
-        }
-
-        if ($this->room !== null) {
-            $conditions[] = sprintf(
-                "%s eq '%s'",
-                ActivityField::Room->value,
-                str_replace("'", "''", $this->room)
-            );
-        }
-
-        if ($this->ids !== []) {
-            $conditions[] = sprintf('%s in (%s)', ActivityField::Id->value, implode(',', $this->ids));
-        }
-
-        return $conditions;
+        return new ODataConditions()
+            ->onOrAfter(ActivityField::Date, $this->since)
+            ->equalsBool(ActivityField::Deleted, $this->includeDeleted ? null : false)
+            ->equalsString(ActivityField::Room, $this->room)
+            ->inGuids(ActivityField::Id, $this->ids)
+            ->build();
     }
 
     public function withSkip(): bool

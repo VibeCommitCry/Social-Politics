@@ -49,6 +49,15 @@ final class ActivityFilterTest extends TestCase
         self::assertSame('Verwijderd eq false and Id in (a-1,a-2)', $filter);
     }
 
+    public function testSinceIsRenderedAsUnquotedUtcDate(): void
+    {
+        $since = new \DateTimeImmutable('2026-01-01', new \DateTimeZone('Europe/Amsterdam'));
+
+        $filter = new ActivityFilter(since: $since)->toQueryParams()['$filter'];
+
+        self::assertSame('Datum ge 2025-12-31T23:00:00Z and Verwijderd eq false', $filter);
+    }
+
     public function testWithSkipReflectsConstructorFlag(): void
     {
         self::assertFalse(new ActivityFilter()->withSkip());
