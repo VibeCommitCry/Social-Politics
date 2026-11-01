@@ -9,6 +9,8 @@ use App\Dto\ActivityDto;
 use App\Interface\OdataInterface;
 use App\Repository\AgendaPointRepository;
 use App\Service\ImporterService;
+use App\Service\SyncRunner;
+use DateTimeImmutable;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,8 +27,8 @@ final class SyncActivityCommand extends Command
     public function __construct(
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
-        private AgendaPointRepository $agendaPointRepository,
-        private readonly string $syncSince,
+        private DateTimeImmutable $since,
+        private SyncRunner $syncRunner
     ) {
         parent::__construct();
     }
@@ -36,44 +38,24 @@ final class SyncActivityCommand extends Command
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500)
-            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'From this to to the present', $this->syncSince);
+            ->addOption('since', null, InputOption::VALUE_OPTIONAL, 'From this to to the present', null);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $max = $this->intOption($input, 'max') ?? 500;
 
-        $top = $this->intOption($input, 'top') ?? 250;
-        $ids = $this->agendaPointRepository->findMissingActivityIds();
+        $sinceOption = $input->getOption('since');
+        $since = $sinceOption !== null ? new DateTimeImmutable($sinceOption) : $this->since;
 
-        if ($ids === []) {
-            $output->writeln('<comment>No unsynced activities referenced by agenda points. Run app:sync:agendapoint first.</comment>');
-            return Command::SUCCESS;
-        }
-
-        $importer = $this->importerService->importerForDto(self::DTOCLASS);
+        $filter = new ActivityFilter(
+            top: $this->intOption($input, 'top') ?? 250,
+            withSkip: true,
+            room: 'Tweede Kamer',
+            since: $since,
+        );
 
         try {
-            $count = 0;
-            foreach (array_chunk($ids, self::BATCH_SIZE) as $batch) {
-                // Ordered by Id so $skip pagination is stable.
-                $filter = new ActivityFilter(top: $top, withSkip: true, room: 'Tweede Kamer', ids: $batch);
-
-                foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
-                    $importer->import($dto);
-                    $count++;
-
-                    if ($count % 250 === 0) {
-                        $output->writeln("Synced {$count} activities so far...");
-                    }
-
-                    if ($count >= $max) {
-                        $output->writeln("Reached max of {$max}, stopping.");
-                        break 2;
-                    }
-                }
-            }
-
+            $count = $this->syncRunner->run($filter, self::DTOCLASS, $this->intOption($input, 'max') ?? 500, $output);
             $output->writeln("Activity sync done. {$count} total.");
         } catch (\Throwable $e) {
             $output->writeln('<error>Activity sync failed: ' . $e->getMessage() . '</error>');

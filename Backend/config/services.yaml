@@ -1,4 +1,8 @@
 services:
+
+    app.sync_since:
+            class: DateTimeImmutable
+            arguments: ['%env(SYNC_SINCE)%']
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
@@ -18,6 +22,6 @@ services:
     App\Command\:
         resource: '../src/Command'
         bind:
-            string $syncSince: '%env(SYNC_SINCE)%'
+             $since: '@app.sync_since'
             # int $recheck: '%env(int:SYNC_RECHECK_DAYS)%'
     

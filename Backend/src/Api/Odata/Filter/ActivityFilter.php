@@ -14,9 +14,9 @@ final class ActivityFilter implements FilterInterface
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         public readonly ?string $room = null,
-        /** @var string[] */
-        private readonly array $ids = [],
         private readonly ?\DateTimeImmutable $since = null,
+         /** @var string[] */
+        private readonly array $ids = [],
     ) {}
 
     public function endpoint(): string
@@ -28,7 +28,7 @@ final class ActivityFilter implements FilterInterface
     {
         $params = [
             '$top' => $this->top,
-            '$orderby' => ActivityField::Id->value . ' asc',
+            '$orderby' => ActivityField::Date->value . ' asc',
         ];
 
         $conditions = $this->buildConditions();

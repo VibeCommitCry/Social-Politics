@@ -26,7 +26,6 @@ final class SyncAgendaPointCommand extends Command
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
         private DecisionRepository $decisionRepository,
-        private readonly string $syncSince,
     ) {
         parent::__construct();
     }
