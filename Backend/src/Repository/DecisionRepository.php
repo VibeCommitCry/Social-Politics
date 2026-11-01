@@ -8,6 +8,7 @@ use App\Dto\DecisionDto;
 use App\Entity\AgendaPoint;
 use App\Entity\Decision;
 use App\Interface\DtoInterface;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -89,5 +90,24 @@ final class DecisionRepository extends ServiceEntityRepository
         $rows = $qb->getQuery()->getScalarResult();
 
         return array_column($rows, 'id');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function findIdsToCheck(int $recheck, DateTimeImmutable $now = new DateTimeImmutable()): array
+    {
+        /** @var list<string> */
+        return $this->createQueryBuilder('e')
+            ->select('e.id')
+            ->join('e.agendaPoint', 'ap')
+            ->join('ap.activity', 'a')
+            ->where('a.date <= :now')
+            ->andWhere('e.votesSyncedAt IS NULL OR (e.votesSyncedAt < :dayAgo AND a.date >= :windowStart)')
+            ->setParameter('now', $now)
+            ->setParameter('dayAgo', $now->modify('-1 day'))
+            ->setParameter('windowStart', $now->modify("-{$recheck} days"))
+            ->getQuery()
+            ->getSingleColumnResult();
     }
 }

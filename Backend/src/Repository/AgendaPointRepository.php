@@ -10,6 +10,7 @@ use App\Entity\AgendaPoint;
 use App\Entity\Decision;
 use App\Interface\DtoInterface;
 use App\Interface\ImportDtoInterface;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,8 +41,8 @@ class AgendaPointRepository extends ServiceEntityRepository implements ImportDto
         $agendaPoint->setActivitySourceId($dto->activityId);
         $agendaPoint->setActivity(
             $dto->activityId === null
-                ? null
-                : $this->getEntityManager()->find(Activity::class, $dto->activityId)
+            ? null
+            : $this->getEntityManager()->find(Activity::class, $dto->activityId)
         );
         $agendaPoint->setNumber($dto->number);
         $agendaPoint->setSubject($dto->subject);
@@ -69,7 +70,7 @@ class AgendaPointRepository extends ServiceEntityRepository implements ImportDto
     {
         $this->getEntityManager()->createQuery(
             'UPDATE ' . Decision::class . ' d SET d.agendaPoint = :agendaPoint'
-                . ' WHERE d.agendaItemId = :id AND d.agendaPoint IS NULL'
+            . ' WHERE d.agendaItemId = :id AND d.agendaPoint IS NULL'
         )
             ->setParameter('agendaPoint', $agendaPoint->getId())
             ->setParameter('id', $agendaPoint->getId())
@@ -92,11 +93,29 @@ class AgendaPointRepository extends ServiceEntityRepository implements ImportDto
         /** @var list<array{activitySourceId: string}> $rows */
         $rows = $this->getEntityManager()->createQuery(
             'SELECT a.activitySourceId FROM ' . AgendaPoint::class . ' a'
-                . ' WHERE a.activitySourceId IS NOT NULL'
-                . ' AND NOT EXISTS (SELECT 1 FROM ' . Activity::class . ' x WHERE x.id = a.activitySourceId)'
-                . ' GROUP BY a.activitySourceId ORDER BY MAX(a.modifiedOn) DESC'
+            . ' WHERE a.activitySourceId IS NOT NULL'
+            . ' AND NOT EXISTS (SELECT 1 FROM ' . Activity::class . ' x WHERE x.id = a.activitySourceId)'
+            . ' GROUP BY a.activitySourceId ORDER BY MAX(a.modifiedOn) DESC'
         )->getScalarResult();
 
         return array_column($rows, 'activitySourceId');
+    }
+
+    /**
+    * @return list<string>
+    */
+    public function findIdsToCheck(int $recheck, DateTimeImmutable $now = new DateTimeImmutable()): array
+    {
+        /** @var list<string> */
+        return $this->createQueryBuilder('e')
+            ->select('e.id')
+            ->join('e.activity', 'a')
+            ->where('a.date <= :now')
+            ->andWhere('e.decisionsSyncedAt IS NULL OR (e.decisionsSyncedAt < :dayAgo AND a.date >= :windowStart)')
+            ->setParameter('now', $now)
+            ->setParameter('dayAgo', $now->modify('-1 day'))
+            ->setParameter('windowStart', $now->modify("-{$recheck} days"))
+            ->getQuery()
+            ->getSingleColumnResult();
     }
 }
