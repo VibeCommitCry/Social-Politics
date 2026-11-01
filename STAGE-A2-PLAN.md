@@ -1,19 +1,5 @@
 # Stage A2 — Date-driven, scheduled sync: plan
 
-
-
-
-## Step 2 — Progress markers
-
-- [ ] `AgendaPoint::$decisionsSyncedAt` (nullable `DateTimeImmutable`).
-- [ ] `Decision::$votesSyncedAt` (nullable `DateTimeImmutable`).
-- [ ] `php bin/console make:migration`, review the diff, then migrate.
-- [ ] `php bin/console doctrine:schema:validate`.
-- [ ] Repository queries:
-  - `AgendaPointRepository::findIdsToCheck(\DateTimeImmutable $now, int $recheckDays)` — only agenda points whose `Activity.Datum <= $now`, and `decisionsSyncedAt IS NULL`, or (`decisionsSyncedAt` older than 1 day AND `Activity.Datum` within `$recheckDays`).
-  - `DecisionRepository::findIdsToCheck(...)` — same rule on `votesSyncedAt`.
-- [ ] Repository tests: never checked, checked today, checked >1 day ago inside the window, checked >1 day ago outside the window.
-
 ## Step 3 — Rework the sync commands
 
 - [ ] `app:sync:activity`: fetch by `since` (order `Id asc`, paging with `$skip`); always re-fetch activities inside the re-check window.
@@ -156,3 +142,14 @@ fractions (full)
 - [ ] Add a `--since` option to the commands that overrides the `.env` value.
 
 Check: `php bin/phpunit tests/Unit`.
+
+## Step 2 — Progress markers
+
+- [ ] `AgendaPoint::$decisionsSyncedAt` (nullable `DateTimeImmutable`).
+- [ ] `Decision::$votesSyncedAt` (nullable `DateTimeImmutable`).
+- [ ] `php bin/console make:migration`, review the diff, then migrate.
+- [ ] `php bin/console doctrine:schema:validate`.
+- [ ] Repository queries:
+  - `AgendaPointRepository::findIdsToCheck(\DateTimeImmutable $now, int $recheckDays)` — only agenda points whose `Activity.Datum <= $now`, and `decisionsSyncedAt IS NULL`, or (`decisionsSyncedAt` older than 1 day AND `Activity.Datum` within `$recheckDays`).
+  - `DecisionRepository::findIdsToCheck(...)` — same rule on `votesSyncedAt`.
+- [ ] Repository tests: never checked, checked today, checked >1 day ago inside the window, checked >1 day ago outside the window.
