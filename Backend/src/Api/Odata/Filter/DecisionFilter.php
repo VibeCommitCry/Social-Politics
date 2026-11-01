@@ -31,7 +31,7 @@ final class DecisionFilter implements FilterInterface
     {
         $query = [
             '$top' => $this->top,
-            '$orderby' => DecisionField::ModifiedOn->value .' desc',
+            '$orderby' => DecisionField::ModifiedOn->value . ' desc',
         ];
 
         $conditions = $this->buildConditions();

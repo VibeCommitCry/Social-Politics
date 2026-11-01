@@ -23,7 +23,6 @@ final class SyncAgendaPointCommand extends Command
     private const BATCH_SIZE = 50;
     private const DTOCLASS = AgendaPointDto::class;
     public function __construct(
-
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
         private DecisionRepository $decisionRepository,

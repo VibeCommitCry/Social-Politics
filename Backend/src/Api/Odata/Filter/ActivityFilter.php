@@ -17,8 +17,7 @@ final class ActivityFilter implements FilterInterface
         /** @var string[] */
         private readonly array $ids = [],
         private readonly ?\DateTimeImmutable $since = null,
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
