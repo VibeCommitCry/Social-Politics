@@ -1,56 +1,7 @@
 # Stage A2 — Date-driven, scheduled sync: plan
 
-Work through the steps in order. Each step ends with tests and a commit. Run commands from `Backend/` (inside the container, or on the host with the `DATABASE_URL` override on port 3308).
 
-## Background
 
-`app:sync:vote` takes every decision id ordered by `modifiedOn DESC`, fetches votes in batches of 50 and stops at `--max 500`. The order never changes, so every run starts with the same decisions and one decision can have ~150 votes. Result: 622 decisions, 269 votes, only 8 decisions with votes.
-
-## Target design
-
-```
-fractions (full)
-  → activities        Datum ge SYNC_SINCE, Kamer = Tweede Kamer
-  → agenda points     Activiteit/Datum ge SYNC_SINCE
-  → decisions         Agendapunt_Id in (unchecked agenda points)
-  → cases             only those linked to synced decisions
-  → votes             Besluit_Id in (unchecked decisions)
-```
-
-- `SYNC_SINCE` and `SYNC_RECHECK_DAYS` live in `.env`; every command reads them.
-- One shared 500-row budget (rows fetched from the API) per scheduled run, checked **between decisions**.
-- Checked markers: `AgendaPoint.decisionsSyncedAt`, `Decision.votesSyncedAt`.
-- Re-check a checked row once a day while its activity is within `SYNC_RECHECK_DAYS`; never after.
-- Scheduler runs every 10 minutes. Lock stops overlap. `sync_state` stores "caught up at".
-
-## Decisions (from the plan interview)
-
-- **Cutoff:** `SYNC_SINCE=2026-01-01`. Backfill by lowering the date or using `--since`; per-row markers mean only new rows get picked up.
-- **API failure:** log it, skip the decision without stamping it, continue. Abort the run after 3 consecutive failures. A partial vote set is never stamped.
-- **Idempotent import:** re-importing is harmless; `VoteRepository::saveDtoAsEntity` already upserts by vote id. Add a test that importing the same vote twice leaves one row.
-- **Timezone:** accept the small error at the cutoff boundary. Store dates as returned, no conversion.
-- **Cases:** no separate case re-check; cases refresh when their decision is re-checked.
-- **Existing data:** keep it (the user may reset the DB anyway). All markers start NULL, so old rows are re-checked once.
-- **Manual runs:** `app:sync:all` ignores `caught_up_at`, but still takes the lock and stops at its own `--max`.
-- **Future activities:** `findIdsToCheck` only returns agenda points whose activity date is `<= now`. Planning ahead may come in a later version.
-- **Activity re-fetch:** always re-fetch activities with `Datum ge now - SYNC_RECHECK_DAYS`, plus anything newer than the last stored one. The upsert handles unchanged rows.
-- **Budget:** 500 counts rows fetched from the API (saved or not). Pages are 250 rows; votes run one decision at a time, so a run can slightly overshoot 500 but never cuts a decision off.
-- **Logging:** one line per step (`activities: fetched 250, saved 31 (new 12, updated 19)`) plus a final total line.
-- **Deleted records:** skip `Verwijderd` records on import; leave stored rows alone. No delete propagation.
-- **Worker:** `--limit=20 --memory-limit=256M`; PHP `memory_limit=512M` as the hard ceiling; `restart: unless-stopped`.
-- **Successor parties:** `Fractie.Id` changes on a rename or merger (verified on the live API). Out of scope here; tracked in `ROADMAP.md` under Stage 1.1.
-
-## Step 1 — Config and date filters
-
-- [ ] Add `SYNC_SINCE=2026-01-01` and `SYNC_RECHECK_DAYS=14` to `Backend/.env` (and `.env.test`).
-- [ ] Bind both as parameters in `config/services.yaml`; inject into the sync commands.
-- [ ] `ActivityFilter`: add a `since` argument → condition `Datum ge <date>T00:00:00Z`.
-- [ ] `DecisionFilter`: add `agendaItemIds` (list, unquoted GUIDs) → `Agendapunt_Id in (...)`. Keep the single-id option.
-- [ ] Use the field enums, never hard-coded property strings.
-- [ ] Unit tests for the three filters (conditions, empty lists, GUIDs unquoted).
-- [ ] Add a `--since` option to the commands that overrides the `.env` value.
-
-Check: `php bin/phpunit tests/Unit`.
 
 ## Step 2 — Progress markers
 
@@ -148,3 +99,60 @@ FROM (
 ## Open points to confirm while building
 
 - None left from the interview. The timezone boundary error is accepted (see Decisions), and `Fractie.Id` changes on a rename (handled in the roadmap, Stage 1.1).
+
+# background info
+
+Work through the steps in order. Each step ends with tests and a commit. Run commands from `Backend/` (inside the container, or on the host with the `DATABASE_URL` override on port 3308).
+
+## Background
+
+`app:sync:vote` takes every decision id ordered by `modifiedOn DESC`, fetches votes in batches of 50 and stops at `--max 500`. The order never changes, so every run starts with the same decisions and one decision can have ~150 votes. Result: 622 decisions, 269 votes, only 8 decisions with votes.
+
+## Target design
+
+```
+fractions (full)
+  → activities        Datum ge SYNC_SINCE, Kamer = Tweede Kamer
+  → agenda points     Activiteit/Datum ge SYNC_SINCE
+  → decisions         Agendapunt_Id in (unchecked agenda points)
+  → cases             only those linked to synced decisions
+  → votes             Besluit_Id in (unchecked decisions)
+```
+
+- `SYNC_SINCE` and `SYNC_RECHECK_DAYS` live in `.env`; every command reads them.
+- One shared 500-row budget (rows fetched from the API) per scheduled run, checked **between decisions**.
+- Checked markers: `AgendaPoint.decisionsSyncedAt`, `Decision.votesSyncedAt`.
+- Re-check a checked row once a day while its activity is within `SYNC_RECHECK_DAYS`; never after.
+- Scheduler runs every 10 minutes. Lock stops overlap. `sync_state` stores "caught up at".
+
+## Decisions (from the plan interview)
+
+- **Cutoff:** `SYNC_SINCE=2026-01-01`. Backfill by lowering the date or using `--since`; per-row markers mean only new rows get picked up.
+- **API failure:** log it, skip the decision without stamping it, continue. Abort the run after 3 consecutive failures. A partial vote set is never stamped.
+- **Idempotent import:** re-importing is harmless; `VoteRepository::saveDtoAsEntity` already upserts by vote id. Add a test that importing the same vote twice leaves one row.
+- **Timezone:** accept the small error at the cutoff boundary. Store dates as returned, no conversion.
+- **Cases:** no separate case re-check; cases refresh when their decision is re-checked.
+- **Existing data:** keep it (the user may reset the DB anyway). All markers start NULL, so old rows are re-checked once.
+- **Manual runs:** `app:sync:all` ignores `caught_up_at`, but still takes the lock and stops at its own `--max`.
+- **Future activities:** `findIdsToCheck` only returns agenda points whose activity date is `<= now`. Planning ahead may come in a later version.
+- **Activity re-fetch:** always re-fetch activities with `Datum ge now - SYNC_RECHECK_DAYS`, plus anything newer than the last stored one. The upsert handles unchanged rows.
+- **Budget:** 500 counts rows fetched from the API (saved or not). Pages are 250 rows; votes run one decision at a time, so a run can slightly overshoot 500 but never cuts a decision off.
+- **Logging:** one line per step (`activities: fetched 250, saved 31 (new 12, updated 19)`) plus a final total line.
+- **Deleted records:** skip `Verwijderd` records on import; leave stored rows alone. No delete propagation.
+- **Worker:** `--limit=20 --memory-limit=256M`; PHP `memory_limit=512M` as the hard ceiling; `restart: unless-stopped`.
+- **Successor parties:** `Fractie.Id` changes on a rename or merger (verified on the live API). Out of scope here; tracked in `ROADMAP.md` under Stage 1.1.
+
+
+# done
+
+## Step 1 — Config and date filters
+
+- [ ] Add `SYNC_SINCE=2026-01-01` and `SYNC_RECHECK_DAYS=14` to `Backend/.env` (and `.env.test`).
+- [ ] Bind both as parameters in `config/services.yaml`; inject into the sync commands.
+- [ ] `ActivityFilter`: add a `since` argument → condition `Datum ge <date>T00:00:00Z`.
+- [ ] `DecisionFilter`: add `agendaItemIds` (list, unquoted GUIDs) → `Agendapunt_Id in (...)`. Keep the single-id option.
+- [ ] Use the field enums, never hard-coded property strings.
+- [ ] Unit tests for the three filters (conditions, empty lists, GUIDs unquoted).
+- [ ] Add a `--since` option to the commands that overrides the `.env` value.
+
+Check: `php bin/phpunit tests/Unit`.
