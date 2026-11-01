@@ -14,6 +14,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started
 |---|---|---|---|
 | 0 | Reliable sync + clean test setup | — | ✅ |
 | A | `Decision.votedOn` (real vote date) | 0 | 🟡 |
+| A2 | Date-driven, scheduled sync (rework of Stage A's sync) | A (steps 1-4) | ⬜ |
 | 1 | `GET /api/fractions` | A | ⬜ |
 | 1.1 | `GET /api/fractions/{id}/votes` | A | ⬜ |
 | 2 | `GET /api/decisions/{id}` + outcome service | A | ⬜ |
@@ -90,6 +91,20 @@ Vote date comes from Decision → AgendaPoint → Activity (`Activity.Datum` in 
 
 **Done when:** most decisions that have votes have a `votedOn`. Stage A turns ✅ once the coverage check above passes.
 
+## Stage A2 — Date-driven, scheduled sync ⬜
+
+Why: repeated 500-record runs of `app:sync:vote` re-fetch the same decisions (ordered by `modifiedOn`), so only 8 of ~600 synced decisions have votes. Full step-by-step plan: `STAGE-A2-PLAN.md`.
+
+**Decisions (settled):**
+- Only recent data: `Activity.Datum >= SYNC_SINCE` (`.env`, default `2026-01-01`, read by all commands). Older rows already in the DB stay and are never fetched again.
+- Flow: fractions (full) → activities → agenda points (`Activiteit/Datum` filter) → decisions (`Agendapunt_Id in (...)`) → cases linked to those decisions → votes.
+- Progress markers: `AgendaPoint.decisionsSyncedAt` and `Decision.votesSyncedAt`. Checked rows are re-checked once a day while the activity is within `SYNC_RECHECK_DAYS` (default 14), then never again.
+- One shared 500-row budget per run, checked between decisions so a decision's votes are never cut off. Individual commands keep their own `--max`.
+- Symfony Scheduler + Messenger worker container, every 10 minutes. A lock prevents overlapping runs. A `sync_state` table stores the "caught up" time: fast while there is a backlog, at most hourly top-ups once caught up.
+- Cases: only those linked to synced decisions. Fractions: full, as today.
+
+**Done when:** a fresh sync runs unattended until caught up, and the Stage A coverage check passes.
+
 ## Stage 1 — Fraction list: `GET /api/fractions` ⬜
 
 Returns the active fractions with their seats, ordered by seat count descending. Each fraction carries its 3 most recent votes, and each vote links to its decision.
@@ -107,6 +122,7 @@ Returns the active fractions with their seats, ordered by seat count descending.
 - **Repository:** add `VoteRepository::findPageByFraction(string $fractionId, int $page, int $limit)`, joined to the decision.
 - **Each item:** `{ voteType, fractionSizeAtVote, fractionNameAtVote, decision: {id, textExcerpt, votedOn, outcome} }`. The size and name come from the `Vote` snapshot columns (handover decision #3).
 - **404** if the fraction doesn't exist.
+- **Open item — successor parties:** a rename or merger creates a new `Fractie.Id` (verified on the live API: GroenLinks + PvdA → GroenLinks-PvdA `0208097d…` 2023-10-27 → PRO `d60f373a…` 2026-06-09). A query by one fraction therefore only returns votes since its own start date. Decide how to link predecessor and successor fractions (for example a `Fraction.successor` relation, filled by hand). Not part of Stage A2.
 
 ## Stage 2 — Decision detail: `GET /api/decisions/{id}` ⬜
 
