@@ -71,6 +71,8 @@ final class SyncActivityCommandTest extends DatabaseTestCase
             $this->apiProvider($responses, $requests),
             $this->importerService(),
             $this->agendaPointRepo(),
+            '2026-01-01',
+            14,
         ));
     }
 

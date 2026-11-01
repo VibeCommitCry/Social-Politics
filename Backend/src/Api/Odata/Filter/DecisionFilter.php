@@ -14,6 +14,8 @@ final class DecisionFilter implements FilterInterface
         private readonly bool $includeDeleted = false,
         private readonly ?string $agendaItemId = null,
         public readonly bool $withSkip = false,
+        /** @var string[] */
+        private readonly array $agendaItemIds = [],
     ) {}
 
     public function buildConditions(): array
@@ -21,6 +23,7 @@ final class DecisionFilter implements FilterInterface
         return new ODataConditions()
             ->equalsBool(DecisionField::Deleted, $this->includeDeleted ? null : false)
             ->equalsGuid(DecisionField::AgendaItemId, $this->agendaItemId)
+            ->inGuids(DecisionField::AgendaItemId, $this->agendaItemIds)
             ->build();
     }
 
@@ -28,7 +31,7 @@ final class DecisionFilter implements FilterInterface
     {
         $query = [
             '$top' => $this->top,
-            '$orderby' => 'GewijzigdOp desc',
+            '$orderby' => DecisionField::ModifiedOn->value .' desc',
         ];
 
         $conditions = $this->buildConditions();

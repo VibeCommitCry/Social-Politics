@@ -23,6 +23,13 @@ final class DecisionFilterTest extends TestCase
         self::assertSame(sprintf('Verwijderd eq false and Agendapunt_Id eq %s', self::GUID), $filter);
     }
 
+    public function testAgendaItemIdsAreRenderedUnquoted(): void
+    {
+        $filter = new DecisionFilter(agendaItemIds: ['a-1', 'a-2'])->toQueryParams()['$filter'];
+
+        self::assertSame('Verwijderd eq false and Agendapunt_Id in (a-1,a-2)', $filter);
+    }
+
     public function testNoAgendaItemAddsNoCondition(): void
     {
         self::assertSame('Verwijderd eq false', new DecisionFilter()->toQueryParams()['$filter']);
