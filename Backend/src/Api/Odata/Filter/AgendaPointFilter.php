@@ -42,26 +42,11 @@ final class AgendaPointFilter implements FilterInterface
 
     public function buildConditions(): array
     {
-        $conditions = [];
-
-        if (!$this->includeDeleted) {
-            $conditions[] = AgendaPointField::Deleted->value . ' eq false';
-        }
-
-        if ($this->room !== null) {
-            $conditions[] = sprintf(
-                "%s/%s eq '%s'",
-                AgendaPointField::Activity->value,
-                ActivityField::Room->value,
-                str_replace("'", "''", $this->room)
-            );
-        }
-
-        if ($this->ids !== []) {
-            $conditions[] = sprintf('%s in (%s)', AgendaPointField::Id->value, implode(',', $this->ids));
-        }
-
-        return $conditions;
+        return new ODataConditions()
+            ->equalsBool(AgendaPointField::Deleted, $this->includeDeleted ? null : false)
+            ->equalsStringVia(AgendaPointField::Activity, ActivityField::Room, $this->room)
+            ->inGuids(AgendaPointField::Id, $this->ids)
+            ->build();
     }
 
     public function withSkip(): bool

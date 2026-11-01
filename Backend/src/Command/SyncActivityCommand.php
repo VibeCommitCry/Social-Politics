@@ -26,6 +26,7 @@ final class SyncActivityCommand extends Command
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
         private AgendaPointRepository $agendaPointRepository,
+        private readonly string $syncSince,
     ) {
         parent::__construct();
     }
@@ -34,7 +35,8 @@ final class SyncActivityCommand extends Command
     {
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
-            ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500);
+            ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500)
+            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'From this to to the present', $this->syncSince);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

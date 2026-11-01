@@ -45,7 +45,6 @@ fractions (full)
 - [ ] Add `SYNC_SINCE=2026-01-01` and `SYNC_RECHECK_DAYS=14` to `Backend/.env` (and `.env.test`).
 - [ ] Bind both as parameters in `config/services.yaml`; inject into the sync commands.
 - [ ] `ActivityFilter`: add a `since` argument → condition `Datum ge <date>T00:00:00Z`.
-- [ ] `AgendaPointFilter`: add `since` → `Activiteit/Datum ge <date>T00:00:00Z` (verified working on the live API).
 - [ ] `DecisionFilter`: add `agendaItemIds` (list, unquoted GUIDs) → `Agendapunt_Id in (...)`. Keep the single-id option.
 - [ ] Use the field enums, never hard-coded property strings.
 - [ ] Unit tests for the three filters (conditions, empty lists, GUIDs unquoted).

@@ -4,9 +4,11 @@ services:
         build:
             context: ./Backend
             dockerfile: dockerfile
-            target: development 
+            target: development
         volumes:
             - ./Backend:/var/www/html
+            - backend_cache:/var/www/html/var/cache
+
         environment:
             - APP_DEBUG=1
             - DATABASE_URL=mysql://user:secret@db:3306/politiconnect?serverVersion=8.0&charset=utf8mb4
@@ -21,7 +23,6 @@ services:
             start_period: 30s
         networks:
             - Social-Politics
-
 
     nginx:
         image: nginx:alpine
@@ -63,3 +64,5 @@ networks:
 
 volumes:
     db_data:
+    backend_cache:
+
