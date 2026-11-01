@@ -35,7 +35,6 @@ final class SyncDecisionCommandTest extends DatabaseTestCase
             $this->apiProvider([self::decisions(2), self::decisions(1, 2)], $requests),
             $this->importerService(),
             '2026-01-01',
-            14,
         );
         $tester = new CommandTester($command);
         $tester->execute(['--top' => 2]);
@@ -54,7 +53,6 @@ final class SyncDecisionCommandTest extends DatabaseTestCase
             $this->apiProvider([self::decisions(5), self::decisions(5, 5)], $requests),
             $this->importerService(),
             '2026-01-01',
-            14,
         );
         $tester = new CommandTester($command);
         $tester->execute(['--top' => 5, '--max' => 3]);
@@ -70,7 +68,6 @@ final class SyncDecisionCommandTest extends DatabaseTestCase
             $this->apiProvider([new \Symfony\Component\HttpClient\Response\MockResponse('{}', ['http_code' => 500])]),
             $this->importerService(),
             '2026-01-01',
-            14,
         );
         $tester = new CommandTester($command);
         $tester->execute([]);

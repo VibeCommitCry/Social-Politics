@@ -27,7 +27,6 @@ final class SyncAgendaPointCommand extends Command
         private ImporterService $importerService,
         private DecisionRepository $decisionRepository,
         private readonly string $syncSince,
-        private readonly int $recheck,
     ) {
         parent::__construct();
     }

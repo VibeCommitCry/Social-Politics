@@ -19,5 +19,5 @@ services:
         resource: '../src/Command'
         bind:
             string $syncSince: '%env(SYNC_SINCE)%'
-            int $recheck: '%env(int:SYNC_RECHECK_DAYS)%'
+            # int $recheck: '%env(int:SYNC_RECHECK_DAYS)%'
     

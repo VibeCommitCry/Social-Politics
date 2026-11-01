@@ -24,7 +24,6 @@ final class SyncDecisionCommand extends Command
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
         private readonly string $syncSince,
-        private readonly int $recheck,
     ) {
         parent::__construct();
     }

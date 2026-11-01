@@ -13,8 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class SyncAllCommand extends Command
 {
     public function __construct(
-        private readonly string $syncSince,
-        private readonly int $recheck,
     ) {
         parent::__construct();
     }

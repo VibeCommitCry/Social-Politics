@@ -72,7 +72,6 @@ final class SyncActivityCommandTest extends DatabaseTestCase
             $this->importerService(),
             $this->agendaPointRepo(),
             '2026-01-01',
-            14,
         ));
     }
 
