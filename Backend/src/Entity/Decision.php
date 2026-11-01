@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Enum\DecisionStatus;
 use App\Repository\DecisionRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -39,13 +40,16 @@ class Decision
     private ?int $sequence = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $modifiedOn = null;
+    private ?DateTimeImmutable $modifiedOn = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $apiModifiedOn = null;
+    private ?DateTimeImmutable $apiModifiedOn = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $deleted = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $votesSyncedAt  = null;
 
     /**
      * @var Collection<int, Vote>
@@ -106,7 +110,7 @@ class Decision
      * The day this decision was voted on: Activity.Datum reached through the agenda point,
      * as a date in Europe/Amsterdam. Null when the agenda point, the activity or its date is unknown.
      */
-    public function getVotedOn(): ?\DateTimeImmutable
+    public function getVotedOn(): ?DateTimeImmutable
     {
         $date = $this->agendaPoint?->getActivity()?->getDate();
 
@@ -115,7 +119,7 @@ class Decision
         }
 
         // The column holds Amsterdam wall-clock time but Doctrine hydrates it in the PHP default time zone.
-        return new \DateTimeImmutable($date->format('Y-m-d'), new \DateTimeZone('Europe/Amsterdam'));
+        return new DateTimeImmutable($date->format('Y-m-d'), new \DateTimeZone('Europe/Amsterdam'));
     }
 
     public function getAgendaItemId(): string
@@ -190,26 +194,38 @@ class Decision
         return $this;
     }
 
-    public function getModifiedOn(): ?\DateTimeImmutable
+    public function getModifiedOn(): ?DateTimeImmutable
     {
         return $this->modifiedOn;
     }
 
-    public function setModifiedOn(?\DateTimeImmutable $modifiedOn): static
+    public function setModifiedOn(?DateTimeImmutable $modifiedOn): static
     {
         $this->modifiedOn = $modifiedOn;
 
         return $this;
     }
 
-    public function getApiModifiedOn(): ?\DateTimeImmutable
+    public function getApiModifiedOn(): ?DateTimeImmutable
     {
         return $this->apiModifiedOn;
     }
 
-    public function setApiModifiedOn(?\DateTimeImmutable $apiModifiedOn): static
+    public function setApiModifiedOn(?DateTimeImmutable $apiModifiedOn): static
     {
         $this->apiModifiedOn = $apiModifiedOn;
+
+        return $this;
+    }
+
+    public function getVotesSyncedAt(): ?DateTimeImmutable
+    {
+        return $this->votesSyncedAt;
+    }
+
+    public function setVotesSyncedAt(?DateTimeImmutable $votesSyncedAt): static
+    {
+        $this->votesSyncedAt = $votesSyncedAt;
 
         return $this;
     }

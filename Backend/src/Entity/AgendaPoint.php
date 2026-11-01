@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AgendaPointRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AgendaPointRepository::class)]
@@ -27,10 +28,10 @@ class AgendaPoint
     private ?string $subject = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $startTime = null;
+    private ?DateTimeImmutable $startTime = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $endTime = null;
+    private ?DateTimeImmutable $endTime = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $sequence = null;
@@ -42,13 +43,16 @@ class AgendaPoint
     private ?string $remark = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $modifiedOn = null;
+    private ?DateTimeImmutable $modifiedOn = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $apiModifiedOn = null;
+    private ?DateTimeImmutable $apiModifiedOn = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $deleted = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $decisionsSyncedAt  = null;
 
     public function __construct(string $id)
     {
@@ -104,23 +108,23 @@ class AgendaPoint
         return $this;
     }
 
-    public function getStartTime(): ?\DateTimeImmutable
+    public function getStartTime(): ?DateTimeImmutable
     {
         return $this->startTime;
     }
 
-    public function setStartTime(?\DateTimeImmutable $startTime): static
+    public function setStartTime(?DateTimeImmutable $startTime): static
     {
         $this->startTime = $startTime;
         return $this;
     }
 
-    public function getEndTime(): ?\DateTimeImmutable
+    public function getEndTime(): ?DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(?\DateTimeImmutable $endTime): static
+    public function setEndTime(?DateTimeImmutable $endTime): static
     {
         $this->endTime = $endTime;
         return $this;
@@ -159,25 +163,36 @@ class AgendaPoint
         return $this;
     }
 
-    public function getModifiedOn(): ?\DateTimeImmutable
+    public function getModifiedOn(): ?DateTimeImmutable
     {
         return $this->modifiedOn;
     }
 
-    public function setModifiedOn(?\DateTimeImmutable $modifiedOn): static
+    public function setModifiedOn(?DateTimeImmutable $modifiedOn): static
     {
         $this->modifiedOn = $modifiedOn;
         return $this;
     }
 
-    public function getApiModifiedOn(): ?\DateTimeImmutable
+    public function getApiModifiedOn(): ?DateTimeImmutable
     {
         return $this->apiModifiedOn;
     }
 
-    public function setApiModifiedOn(?\DateTimeImmutable $apiModifiedOn): static
+    public function setApiModifiedOn(?DateTimeImmutable $apiModifiedOn): static
     {
         $this->apiModifiedOn = $apiModifiedOn;
+        return $this;
+    }
+
+    public function getDecisionsSyncedAt(): ?DateTimeImmutable
+    {
+        return $this->decisionsSyncedAt;
+    }
+
+    public function setDecisionsSyncedAt(?DateTimeImmutable $decisionsSyncedAt): static
+    {
+        $this->decisionsSyncedAt = $decisionsSyncedAt;
         return $this;
     }
 
