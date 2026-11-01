@@ -77,7 +77,7 @@ class ActivityRepository extends ServiceEntityRepository implements ImportDtoInt
     {
         $this->getEntityManager()->createQuery(
             'UPDATE ' . AgendaPoint::class . ' p SET p.activity = :activity'
-                . ' WHERE p.activitySourceId = :id AND p.activity IS NULL'
+            . ' WHERE p.activitySourceId = :id AND p.activity IS NULL'
         )
             ->setParameter('activity', $activity)
             ->setParameter('id', $activity->getId())
@@ -88,5 +88,17 @@ class ActivityRepository extends ServiceEntityRepository implements ImportDtoInt
     {
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function findIdsToCheck(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->select('a.id')
+            ->orderBy('a.date', 'desc')
+            ->getQuery()
+            ->getSingleColumnResult();
     }
 }

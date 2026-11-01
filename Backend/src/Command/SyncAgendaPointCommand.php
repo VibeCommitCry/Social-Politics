@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Api\Odata\Filter\AgendaPointFilter;
 use App\Dto\AgendaPointDto;
 use App\Interface\OdataInterface;
+use App\Repository\ActivityRepository;
 use App\Repository\DecisionRepository;
 use App\Service\ImporterService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -26,6 +27,7 @@ final class SyncAgendaPointCommand extends Command
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
         private DecisionRepository $decisionRepository,
+        private ActivityRepository $activityRepository,
     ) {
         parent::__construct();
     }
@@ -34,13 +36,13 @@ final class SyncAgendaPointCommand extends Command
     {
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
-            ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500)
-            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'From this to to the present', $this->syncSince);
+            ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500);
 
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        dd($this->activityRepository->findIdsToCheck());
         $max = $this->intOption($input, 'max') ?? 500;
 
         $top = $this->intOption($input, 'top') ?? 250;

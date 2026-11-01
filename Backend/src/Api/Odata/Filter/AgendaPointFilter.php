@@ -15,9 +15,12 @@ final class AgendaPointFilter implements FilterInterface
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         public readonly ?string $room = null,
+        private readonly ?\DateTimeImmutable $since = null,
+
         /** @var string[] */
         private readonly array $ids = [],
-    ) {}
+    ) {
+    }
 
     public function endpoint(): string
     {
