@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Api\Odata\Filter;
 
+use App\Dto\DecisionDto;
 use App\Enum\DecisionField;
 use App\Interface\FilterInterface;
 
@@ -16,31 +17,7 @@ final class DecisionFilter implements FilterInterface
         public readonly bool $withSkip = false,
         /** @var string[] */
         private readonly array $agendaItemIds = [],
-    ) {}
-
-    public function buildConditions(): array
-    {
-        return new ODataConditions()
-            ->equalsBool(DecisionField::Deleted, $this->includeDeleted ? null : false)
-            ->equalsGuid(DecisionField::AgendaItemId, $this->agendaItemId)
-            ->inGuids(DecisionField::AgendaItemId, $this->agendaItemIds)
-            ->build();
-    }
-
-    public function toQueryParams(): array
-    {
-        $query = [
-            '$top' => $this->top,
-            '$orderby' => DecisionField::ModifiedOn->value . ' desc',
-        ];
-
-        $conditions = $this->buildConditions();
-
-        if ($conditions !== []) {
-            $query['$filter'] = implode(' and ', $conditions);
-        }
-
-        return $query;
+    ) {
     }
 
     public function endpoint(): string
@@ -48,8 +25,24 @@ final class DecisionFilter implements FilterInterface
         return DecisionField::Endpoint->value;
     }
 
+    public function toQueryParams(): array
+    {
+        return (new ODataQueryBuilder())
+            ->top($this->top)
+            ->orderByDesc(DecisionField::ModifiedOn)
+            ->equalsBool(DecisionField::Deleted, $this->includeDeleted ? null : false)
+            ->equalsGuid(DecisionField::AgendaItemId, $this->agendaItemId)
+            ->inGuids(DecisionField::AgendaItemId, $this->agendaItemIds)
+            ->build();
+    }
+
     public function withSkip(): bool
     {
         return $this->withSkip;
+    }
+
+    public function dtoClass(): string
+    {
+        return DecisionDto::class;
     }
 }

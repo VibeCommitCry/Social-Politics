@@ -20,7 +20,7 @@ final class SyncRunner
         $importer = $this->importerService->importerForDto($dtoClass);
         $count = 0;
 
-        foreach ($this->apiProvider->search($filter, $dtoClass) as $dto) {
+        foreach ($this->apiProvider->search($filter) as $dto) {
             $importer->import($dto);
             $count++;
 

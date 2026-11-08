@@ -53,7 +53,7 @@ final class SyncFractieCommand extends Command
 
         try {
             $count = 0;
-            foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
+            foreach ($this->apiProvider->search($filter) as $dto) {
                 $importer->import($dto);
                 $count++;
 

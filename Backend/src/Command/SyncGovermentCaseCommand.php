@@ -53,7 +53,7 @@ final class SyncGovermentCaseCommand extends Command
 
         try {
             $count = 0;
-            foreach ($this->apiProvider->search($filter, self::CASECLASS) as $dto) {
+            foreach ($this->apiProvider->search($filter) as $dto) {
                 $caseImporter->import($dto);
 
                 if ($dto->decisions !== null) {

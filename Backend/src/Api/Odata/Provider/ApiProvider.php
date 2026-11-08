@@ -20,12 +20,11 @@ final class ApiProvider implements OdataInterface
     /**
      * @template T of DtoInterface
      *
-     * @param class-string<T> $dto
-     *
      * @return Generator<int, T>
      */
-    public function search(FilterInterface $filter, string $dto): Generator
+    public function search(FilterInterface $filter): Generator
     {
+        $dto = $filter->dtoClass();
         $baseQuery = $filter->toQueryParams();
         $top = (int) ($baseQuery['$top'] ?? 10);
         $skip = 0;

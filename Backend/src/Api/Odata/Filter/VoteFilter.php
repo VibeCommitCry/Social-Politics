@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Api\Odata\Filter;
 
+use App\Dto\VoteDto;
 use App\Enum\VoteField;
 use App\Interface\FilterInterface;
 
 final class VoteFilter implements FilterInterface
 {
-    private readonly string $endpoint;
-
     /**
      * @param string[] $decisionIds
      */
@@ -20,54 +19,30 @@ final class VoteFilter implements FilterInterface
         public readonly bool $withSkip = false,
         private readonly array $decisionIds = [],
     ) {
-        $this->endpoint = VoteField::Endpoint->value;
     }
 
     public function endpoint(): string
     {
-        return $this->endpoint;
+        return VoteField::Endpoint->value;
     }
 
     public function toQueryParams(): array
     {
-        $params = [
-            '$top' => $this->top,
-            '$orderby' => 'GewijzigdOp desc',
-        ];
-
-        $conditions = $this->buildConditions();
-
-        if ($conditions !== []) {
-            $params['$filter'] = implode(' and ', $conditions);
-        }
-
-        return $params;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function buildConditions(): array
-    {
-        $conditions = [];
-
-        if (!$this->includeDeleted) {
-            $conditions[] = VoteField::Deleted->value . ' eq false';
-        }
-
-        if ($this->decisionIds !== []) {
-            $conditions[] = sprintf(
-                '%s in (%s)',
-                VoteField::DecisionId->value,
-                implode(',', $this->decisionIds)
-            );
-        }
-
-        return $conditions;
+        return (new ODataQueryBuilder())
+            ->top($this->top)
+            ->orderByDesc(VoteField::ModifiedOn)
+            ->equalsBool(VoteField::Deleted, $this->includeDeleted ? null : false)
+            ->inGuids(VoteField::DecisionId, $this->decisionIds)
+            ->build();
     }
 
     public function withSkip(): bool
     {
         return $this->withSkip;
+    }
+
+    public function dtoClass(): string
+    {
+        return VoteDto::class;
     }
 }

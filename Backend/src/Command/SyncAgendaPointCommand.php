@@ -60,7 +60,7 @@ final class SyncAgendaPointCommand extends Command
                 // Ordered by Id so $skip pagination is stable.
                 $filter = new AgendaPointFilter(top: $top, withSkip: true, room: 'Tweede Kamer', ids: $batch);
 
-                foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
+                foreach ($this->apiProvider->search($filter) as $dto) {
                     $importer->import($dto);
                     $count++;
 

@@ -64,7 +64,7 @@ final class SyncVoteCommand extends Command
                     decisionIds: $batch,
                 );
 
-                foreach ($this->apiProvider->search($filter, self::DTOCLASS) as $dto) {
+                foreach ($this->apiProvider->search($filter) as $dto) {
                     $importer->import($dto);
                     $count++;
 
