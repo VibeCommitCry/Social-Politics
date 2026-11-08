@@ -38,7 +38,9 @@ final class SyncActivityCommand extends Command
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500)
-            ->addOption('since', null, InputOption::VALUE_OPTIONAL, 'From this to to the present', null);
+            ->addOption('since', null, InputOption::VALUE_OPTIONAL, 'From this to to the present', null)
+            ->addOption('skip', null, InputOption::VALUE_REQUIRED, 'Enable OData pagination offset skipping', true);
+
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -48,14 +50,14 @@ final class SyncActivityCommand extends Command
         $since = $sinceOption !== null ? new DateTimeImmutable($sinceOption) : $this->since;
 
         $filter = new ActivityFilter(
-            top: $this->intOption($input, 'top') ?? 250,
-            withSkip: true,
+            top: (int) $input->getOption('top'),
+            withSkip: (bool) $input->getOption('skip'),
             room: 'Tweede Kamer',
             since: $since,
         );
 
         try {
-            $count = $this->syncRunner->run($filter, self::DTOCLASS, $this->intOption($input, 'max') ?? 500, $output);
+            $count = $this->syncRunner->run($filter,(int) $input->getOption('max'), $output);
             $output->writeln("Activity sync done. {$count} total.");
         } catch (\Throwable $e) {
             $output->writeln('<error>Activity sync failed: ' . $e->getMessage() . '</error>');

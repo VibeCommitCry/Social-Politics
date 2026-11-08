@@ -14,8 +14,9 @@ final class SyncRunner
     ) {
     }
 
-    public function run(FilterInterface $filter, string $dtoClass, int $max, OutputInterface $output): int
+    public function run(FilterInterface $filter, int $max, OutputInterface $output): int
     {
+        $dtoClass = $filter->dtoClass();
         $importer = $this->importerService->importerForDto($dtoClass);
         $count = 0;
 

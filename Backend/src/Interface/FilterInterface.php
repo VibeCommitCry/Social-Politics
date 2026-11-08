@@ -13,10 +13,11 @@ interface FilterInterface
 
     public function endpoint(): string;
 
-    /**
-     * @return list<string>
-     */
-    public function buildConditions(): array;
 
     public function withSkip(): bool;
+
+    /**
+     * @return class-string<DtoInterface>
+     */
+    public function dtoClass(): string;
 }

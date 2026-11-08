@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Api\Odata\Filter;
 
+use App\Dto\ActivityDto;
 use App\Enum\ActivityField;
 use App\Interface\FilterInterface;
 
@@ -15,9 +16,10 @@ final class ActivityFilter implements FilterInterface
         public readonly bool $withSkip = false,
         public readonly ?string $room = null,
         private readonly ?\DateTimeImmutable $since = null,
-         /** @var string[] */
+        /** @var string[] */
         private readonly array $ids = [],
-    ) {}
+    ) {
+    }
 
     public function endpoint(): string
     {
@@ -26,32 +28,22 @@ final class ActivityFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        $params = [
-            '$top' => $this->top,
-            '$orderby' => ActivityField::Date->value . ' asc',
-        ];
-
-        $conditions = $this->buildConditions();
-
-        if ($conditions !== []) {
-            $params['$filter'] = implode(' and ', $conditions);
-        }
-
-        return $params;
-    }
-
-    public function buildConditions(): array
-    {
-        return new ODataConditions()
+        return (new ODataQueryBuilder())
+            ->top($this->top)
+            ->orderByAsc(ActivityField::Date)
             ->onOrAfter(ActivityField::Date, $this->since)
             ->equalsBool(ActivityField::Deleted, $this->includeDeleted ? null : false)
             ->equalsString(ActivityField::Room, $this->room)
             ->inGuids(ActivityField::Id, $this->ids)
             ->build();
     }
-
     public function withSkip(): bool
     {
         return $this->withSkip;
+    }
+
+    public function dtoClass(): string
+    {
+        return ActivityDto::class;
     }
 }
