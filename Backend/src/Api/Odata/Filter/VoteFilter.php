@@ -8,6 +8,9 @@ use App\Dto\VoteDto;
 use App\Enum\VoteField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<VoteDto>
+ */
 final class VoteFilter implements FilterInterface
 {
     /**
@@ -18,8 +21,7 @@ final class VoteFilter implements FilterInterface
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         private readonly array $decisionIds = [],
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -28,7 +30,7 @@ final class VoteFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderByDesc(VoteField::ModifiedOn)
             ->equalsBool(VoteField::Deleted, $this->includeDeleted ? null : false)

@@ -9,6 +9,9 @@ use App\Enum\DecisionField;
 use App\Enum\GovermentCaseField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<GovermentCaseDto>
+ */
 final class GovermentCaseFilter implements FilterInterface
 {
     public function __construct(
@@ -21,8 +24,7 @@ final class GovermentCaseFilter implements FilterInterface
         public readonly ?bool $completed = null,
         public readonly bool $withSkip = false,
         public readonly bool $expandDecisions = false,
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -31,7 +33,7 @@ final class GovermentCaseFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderBy($this->orderBy, $this->orderDirection)
             ->expand(DecisionField::Endpoint, $this->expandDecisions)

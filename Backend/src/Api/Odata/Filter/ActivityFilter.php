@@ -8,6 +8,9 @@ use App\Dto\ActivityDto;
 use App\Enum\ActivityField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<ActivityDto>
+ */
 final class ActivityFilter implements FilterInterface
 {
     public function __construct(
@@ -18,8 +21,7 @@ final class ActivityFilter implements FilterInterface
         private readonly ?\DateTimeImmutable $since = null,
         /** @var string[] */
         private readonly array $ids = [],
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -28,7 +30,7 @@ final class ActivityFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderByAsc(ActivityField::Date)
             ->onOrAfter(ActivityField::Date, $this->since)

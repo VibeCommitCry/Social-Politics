@@ -46,7 +46,7 @@ final class ApiProviderTest extends TestCase
         $requests = [];
         $provider = $this->provider([self::page(['a', 'b']), self::page(['c', 'd']), self::page(['e'])], $requests);
 
-        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2, withSkip: true), DecisionDto::class), false);
+        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2, withSkip: true)), false);
 
         self::assertSame(['a', 'b', 'c', 'd', 'e'], array_map(static fn(DecisionDto $d) => $d->id, $dtos));
         self::assertCount(3, $requests);
@@ -59,7 +59,7 @@ final class ApiProviderTest extends TestCase
         $requests = [];
         $provider = $this->provider([self::page(['a', 'b'])], $requests);
 
-        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2, withSkip: true), DecisionDto::class), false);
+        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2, withSkip: true)), false);
 
         self::assertCount(2, $dtos);
         self::assertCount(2, $requests);
@@ -70,7 +70,7 @@ final class ApiProviderTest extends TestCase
         $requests = [];
         $provider = $this->provider([self::page(['a', 'b']), self::page(['c'])], $requests);
 
-        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2), DecisionDto::class), false);
+        $dtos = iterator_to_array($provider->search(new DecisionFilter(top: 2)), false);
 
         self::assertCount(2, $dtos);
         self::assertCount(1, $requests);
@@ -82,7 +82,7 @@ final class ApiProviderTest extends TestCase
         $requests = [];
         $provider = $this->provider([self::page([])], $requests);
 
-        iterator_to_array($provider->search(new DecisionFilter(top: 7), DecisionDto::class));
+        iterator_to_array($provider->search(new DecisionFilter(top: 7)));
 
         self::assertSame('7', $requests[0]['$top']);
         self::assertSame('Verwijderd eq false', $requests[0]['$filter']);
@@ -96,7 +96,7 @@ final class ApiProviderTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('API request failed');
 
-        iterator_to_array($provider->search(new DecisionFilter(), DecisionDto::class));
+        iterator_to_array($provider->search(new DecisionFilter()));
     }
 
     public function testHttpErrorStatusSurfacesAsAnExceptionNotAnEmptyResult(): void
@@ -106,6 +106,6 @@ final class ApiProviderTest extends TestCase
 
         $this->expectException(ClientExceptionInterface::class);
 
-        iterator_to_array($provider->search(new DecisionFilter(), DecisionDto::class));
+        iterator_to_array($provider->search(new DecisionFilter()));
     }
 }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface;
 
+/**
+ * @template-covariant T of DtoInterface
+ */
 interface FilterInterface
 {
     /**
@@ -17,7 +20,7 @@ interface FilterInterface
     public function withSkip(): bool;
 
     /**
-     * @return class-string<DtoInterface>
+     * @return class-string<T>
      */
     public function dtoClass(): string;
 }

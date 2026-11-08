@@ -8,6 +8,9 @@ use App\Dto\FractionDto;
 use App\Enum\FractionField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<FractionDto>
+ */
 final class FractionFilter implements FilterInterface
 {
     public function __construct(
@@ -18,8 +21,7 @@ final class FractionFilter implements FilterInterface
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         public readonly ?string $searchByName = null,
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -28,7 +30,7 @@ final class FractionFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderBy($this->orderBy, $this->orderDirection)
             ->equalsBool(FractionField::Deleted, $this->includeDeleted ? null : false)

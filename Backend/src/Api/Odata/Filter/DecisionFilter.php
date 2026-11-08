@@ -8,6 +8,9 @@ use App\Dto\DecisionDto;
 use App\Enum\DecisionField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<DecisionDto>
+ */
 final class DecisionFilter implements FilterInterface
 {
     public function __construct(
@@ -17,8 +20,7 @@ final class DecisionFilter implements FilterInterface
         public readonly bool $withSkip = false,
         /** @var string[] */
         private readonly array $agendaItemIds = [],
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -27,7 +29,7 @@ final class DecisionFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderByDesc(DecisionField::ModifiedOn)
             ->equalsBool(DecisionField::Deleted, $this->includeDeleted ? null : false)

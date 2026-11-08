@@ -14,12 +14,12 @@ final class ActivityFilterTest extends TestCase
         self::assertSame('Activiteit', new ActivityFilter()->endpoint());
     }
 
-    public function testDefaultsExcludeDeletedAndOrderById(): void
+    public function testDefaultsExcludeDeletedAndOrderByDate(): void
     {
         $params = new ActivityFilter()->toQueryParams();
 
         self::assertSame('Verwijderd eq false', $params['$filter']);
-        self::assertSame('Id asc', $params['$orderby']);
+        self::assertSame('Datum asc', $params['$orderby']);
         self::assertSame(250, $params['$top']);
     }
 

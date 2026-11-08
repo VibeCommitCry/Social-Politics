@@ -95,10 +95,13 @@ class ActivityRepository extends ServiceEntityRepository implements ImportDtoInt
      */
     public function findIdsToCheck(): array
     {
-        return $this->createQueryBuilder('a')
+        /** @var list<string> $ids */
+        $ids = $this->createQueryBuilder('a')
             ->select('a.id')
             ->orderBy('a.date', 'desc')
             ->getQuery()
             ->getSingleColumnResult();
+
+        return $ids;
     }
 }

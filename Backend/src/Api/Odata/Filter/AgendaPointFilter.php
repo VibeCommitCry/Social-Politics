@@ -9,6 +9,9 @@ use App\Enum\ActivityField;
 use App\Enum\AgendaPointField;
 use App\Interface\FilterInterface;
 
+/**
+ * @implements FilterInterface<AgendaPointDto>
+ */
 final class AgendaPointFilter implements FilterInterface
 {
     public function __construct(
@@ -16,11 +19,9 @@ final class AgendaPointFilter implements FilterInterface
         public readonly bool $includeDeleted = false,
         public readonly bool $withSkip = false,
         public readonly ?string $room = null,
-        private readonly ?\DateTimeImmutable $since = null,
         /** @var string[] */
         private readonly array $ids = [],
-    ) {
-    }
+    ) {}
 
     public function endpoint(): string
     {
@@ -29,7 +30,7 @@ final class AgendaPointFilter implements FilterInterface
 
     public function toQueryParams(): array
     {
-        return (new ODataQueryBuilder())
+        return new ODataQueryBuilder()
             ->top($this->top)
             ->orderByAsc(AgendaPointField::Id)
             ->equalsBool(AgendaPointField::Deleted, $this->includeDeleted ? null : false)

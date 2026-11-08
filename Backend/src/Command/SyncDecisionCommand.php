@@ -32,7 +32,7 @@ final class SyncDecisionCommand extends Command
         $this
             ->addOption('top', null, InputOption::VALUE_REQUIRED, 'Page size', 250)
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Maximum total records to sync in this run', 500)
-            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'Only sync records on or after this date (YYYY-MM-DD)', $this->syncSince);
+            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'Only sync records on or after this date (YYYY-MM-DD)', null);
 
     }
 

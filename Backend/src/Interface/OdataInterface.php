@@ -11,6 +11,8 @@ interface OdataInterface
     /**
      * @template T of DtoInterface
      *
+     * @param FilterInterface<T> $filter
+     *
      * @return Generator<int, T>
      */
     public function search(FilterInterface $filter): Generator;

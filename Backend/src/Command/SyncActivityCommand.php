@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Api\Odata\Filter\ActivityFilter;
-use App\Dto\ActivityDto;
-use App\Interface\OdataInterface;
-use App\Repository\AgendaPointRepository;
-use App\Service\ImporterService;
 use App\Service\SyncRunner;
 use DateTimeImmutable;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,11 +18,7 @@ final class SyncActivityCommand extends Command
 {
     use ReadsIntOptions;
 
-    private const BATCH_SIZE = 50;
-    private const DTOCLASS = ActivityDto::class;
     public function __construct(
-        private OdataInterface $apiProvider,
-        private ImporterService $importerService,
         private DateTimeImmutable $since,
         private SyncRunner $syncRunner
     ) {
@@ -47,17 +39,17 @@ final class SyncActivityCommand extends Command
     {
 
         $sinceOption = $input->getOption('since');
-        $since = $sinceOption !== null ? new DateTimeImmutable($sinceOption) : $this->since;
+        $since = is_string($sinceOption) && $sinceOption !== '' ? new DateTimeImmutable($sinceOption) : $this->since;
 
         $filter = new ActivityFilter(
-            top: (int) $input->getOption('top'),
+            top: $this->intOption($input, 'top') ?? 250,
             withSkip: (bool) $input->getOption('skip'),
             room: 'Tweede Kamer',
             since: $since,
         );
 
         try {
-            $count = $this->syncRunner->run($filter,(int) $input->getOption('max'), $output);
+            $count = $this->syncRunner->run($filter, $this->intOption($input, 'max') ?? 500, $output);
             $output->writeln("Activity sync done. {$count} total.");
         } catch (\Throwable $e) {
             $output->writeln('<error>Activity sync failed: ' . $e->getMessage() . '</error>');

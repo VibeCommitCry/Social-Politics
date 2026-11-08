@@ -1,6 +1,10 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Service;
 
+use App\Interface\DtoInterface;
 use App\Interface\FilterInterface;
 use App\Interface\OdataInterface;
 use App\Service\ImporterService;
@@ -11,9 +15,11 @@ final class SyncRunner
     public function __construct(
         private OdataInterface $apiProvider,
         private ImporterService $importerService,
-    ) {
-    }
+    ) {}
 
+    /**
+     * @param FilterInterface<DtoInterface> $filter
+     */
     public function run(FilterInterface $filter, int $max, OutputInterface $output): int
     {
         $dtoClass = $filter->dtoClass();
